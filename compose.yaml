@@ -1,0 +1,7 @@
+﻿services:
+  cortado:
+    image: cortado
+    build:
+      context: .
+      dockerfile: Dockerfile
+
