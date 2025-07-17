@@ -8,30 +8,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="448dc173-9252-4ffa-acff-9cc06e254f77" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/Models/Diet.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Models/DietDay.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Models/Entity.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Models/Exercise.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Models/Goal.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Models/Ingredient.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Models/MassUnit.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Models/Meal.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Models/Milestone.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Models/Muscle.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Models/Nutrient.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Models/NutrientName.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Models/NutrientType.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Models/Training.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Models/TrainingDay.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Models/User.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Models/UserGroup.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.cortado/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.cortado/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Controllers/WeatherForecastController.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Program.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Program.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/WeatherForecast.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/cortado.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/cortado.csproj" afterDir="false" />
-    </list>
+    <list default="true" id="448dc173-9252-4ffa-acff-9cc06e254f77" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -169,7 +146,7 @@
       <option name="presentableId" value="Default" />
       <updated>1752765871031</updated>
       <workItem from="1752765872365" duration="2016000" />
-      <workItem from="1752776469075" duration="800000" />
+      <workItem from="1752776469075" duration="1489000" />
     </task>
     <task id="LOCAL-00001" summary="Initial commit">
       <option name="closed" value="true" />
@@ -179,7 +156,23 @@
       <option name="project" value="LOCAL" />
       <updated>1752766089990</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Create models.">
+      <option name="closed" value="true" />
+      <created>1752777289367</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1752777289367</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Add Dapper.">
+      <option name="closed" value="true" />
+      <created>1752778311107</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1752778311107</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -201,7 +194,9 @@
   <component name="VcsManagerConfiguration">
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
     <MESSAGE value="Initial commit" />
-    <option name="LAST_COMMIT_MESSAGE" value="Initial commit" />
+    <MESSAGE value="Create models." />
+    <MESSAGE value="Add Dapper." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add Dapper." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
