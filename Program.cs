@@ -1,4 +1,8 @@
+using System.Text;
+using cortado.Models;
 using cortado.Repositories;
+using cortado.Services;
+using Microsoft.IdentityModel.Tokens;
 
 namespace cortado;
 
@@ -8,10 +12,29 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        // Add services to the container.
         builder.Services.AddSingleton<DapperContext>();
-        builder.Services.AddScoped<ICrudRepository, UserRepository>();
+        builder.Services.AddSingleton<PasswordService>();
+        builder.Services.AddSingleton<JwtTokenService>();
+        
+        builder.Services.AddScoped<UserRepository, UserRepository>();
+        
         builder.Services.AddControllers();
+
+        builder.Services.AddAuthentication("Bearer")
+            .AddJwtBearer("Bearer", options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
+                    ValidAudience = builder.Configuration["JwtSettings:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Key"]))
+                };
+            });
         
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
         builder.Services.AddOpenApi();
@@ -25,7 +48,8 @@ public class Program
         }
 
         app.UseHttpsRedirection();
-
+        
+        app.UseAuthentication();
         app.UseAuthorization();
         
         app.MapControllers();
