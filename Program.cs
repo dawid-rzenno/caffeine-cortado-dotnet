@@ -17,6 +17,7 @@ public class Program
         
         builder.Services.AddScoped<IUsersRepository, UsersRepository>();
         builder.Services.AddScoped<IGoalsRepository, GoalsRepository>();
+        builder.Services.AddScoped<IMilestonesRepository, MilestonesRepository>();
         
         builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
         
