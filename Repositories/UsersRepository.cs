@@ -40,6 +40,7 @@ public class UserRepository(DapperContext context) : ICrudRepository<User>
         var createUserQuery = """
                                   INSERT INTO Users (Username, Password, Timestamp, UserId) 
                                   VALUES (@Username, @Password, @Timestamp, @UserId); 
+                                  OUTPUT INSERTED.*   
                                   SELECT CAST(SCOPE_IDENTITY() as int)
                               """;
 
@@ -51,31 +52,27 @@ public class UserRepository(DapperContext context) : ICrudRepository<User>
 
         var updateUserIdQuery = """
                                     UPDATE Users SET UserId = @UserId
+                                    OUTPUT INSERTED.*
                                     WHERE Id = @Id
                                 """;
 
-        await connection.ExecuteAsync(updateUserIdQuery, new { Id = createdUserId, UserId = createdUserId });
-
-        var getUserByIdQuery = """
-                                   SELECT * FROM Users 
-                                   WHERE Id = @Id
-                               """;
-
-        return await connection.QueryFirstAsync<User>(getUserByIdQuery, new { Id = createdUserId });
+        return await connection.QuerySingleAsync<User>(updateUserIdQuery,
+            new { Id = createdUserId, UserId = createdUserId });
     }
 
-    public async Task<bool> UpdateAsync(User user)
+    public async Task<User> UpdateAsync(User user)
     {
         var query = """
                         UPDATE Users SET Username = @Username, Password = @Password, Timestamp = @Timestamp, UserId = @UserId
+                        OUTPUT INSERTED.*
                         WHERE Id = @Id
                     """;
 
         user.Timestamp = DateTime.UtcNow;
 
         using var connection = context.CreateConnection();
-        var affectedRows = await connection.ExecuteAsync(query, user);
-        return affectedRows > 0;
+
+        return await connection.QuerySingleAsync<User>(query, user);
     }
 
     public async Task<bool> DeleteAsync(int id)
