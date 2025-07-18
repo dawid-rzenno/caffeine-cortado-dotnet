@@ -3,7 +3,12 @@ using Dapper;
 
 namespace cortado.Repositories;
 
-public class UsersRepository(DapperContext context) : ICrudRepository<User>
+public interface IUsersRepository : ICrudRepository<User>
+{
+    public Task<User?> GetByUsernameAsync(string username);
+}
+
+public class UsersRepository(DapperContext context) : IUsersRepository
 {
     public async Task<IEnumerable<User>> GetAllAsync()
     {
@@ -39,8 +44,8 @@ public class UsersRepository(DapperContext context) : ICrudRepository<User>
     {
         var createUserQuery = """
                                   INSERT INTO Users (Username, Password, Timestamp, UserId) 
+                                  OUTPUT INSERTED.*
                                   VALUES (@Username, @Password, @Timestamp, @UserId); 
-                                  OUTPUT INSERTED.*   
                                   SELECT CAST(SCOPE_IDENTITY() as int)
                               """;
 

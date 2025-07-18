@@ -1,5 +1,4 @@
 using System.Text;
-using cortado.Models;
 using cortado.Repositories;
 using cortado.Services;
 using Microsoft.IdentityModel.Tokens;
@@ -16,7 +15,9 @@ public class Program
         builder.Services.AddSingleton<PasswordService>();
         builder.Services.AddSingleton<JwtTokenService>();
         
-        builder.Services.AddScoped<UsersRepository, UsersRepository>();
+        builder.Services.AddScoped<IUsersRepository, UsersRepository>();
+        builder.Services.AddScoped<IGoalsRepository, GoalsRepository>();
+        
         builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
         
         builder.Services.AddControllers();

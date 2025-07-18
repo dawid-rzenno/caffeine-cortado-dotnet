@@ -4,16 +4,19 @@ namespace cortado.Services;
 
 public interface ICurrentUserService
 {
-    string? UserId { get; }
-    string? Email { get; }
     ClaimsPrincipal? User { get; }
+    
+    int? GetUserId();
 }
 
 public class CurrentUserService(IHttpContextAccessor contextAccessor) : ICurrentUserService
 {
     public ClaimsPrincipal? User => contextAccessor.HttpContext?.User;
 
-    public string? UserId => User?.FindFirst("UserId")?.Value;
+    public int? GetUserId()
+    {
+        string? userId = User?.FindFirst("UserId")?.Value;
 
-    public string? Email => User?.FindFirst(ClaimTypes.Email)?.Value;
+        return !string.IsNullOrEmpty(userId) ? int.Parse(userId) : null;
+    }
 }

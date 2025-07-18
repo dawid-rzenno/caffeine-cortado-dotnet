@@ -10,7 +10,7 @@ namespace cortado.Controllers;
 [Route("api/v1/[controller]")]
 public class AuthController(
     JwtTokenService jwtTokenService,
-    UsersRepository usersRepository,
+    IUsersRepository usersRepository,
     PasswordService passwordService
 ) : ControllerBase
 {
@@ -38,6 +38,6 @@ public class AuthController(
             }
         );
 
-        return Created("", user);
+        return Created("", new UserResponse(user));
     }
 }

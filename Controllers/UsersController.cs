@@ -9,7 +9,7 @@ namespace cortado.Controllers;
 [Authorize]
 [ApiController]
 [Route("api/v1/[controller]")]
-public class UsersController(UsersRepository repository) : ControllerBase
+public class UsersController(IUsersRepository repository) : ControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> GetAll()
