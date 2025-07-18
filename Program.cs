@@ -16,7 +16,7 @@ public class Program
         builder.Services.AddSingleton<PasswordService>();
         builder.Services.AddSingleton<JwtTokenService>();
         
-        builder.Services.AddScoped<UserRepository, UserRepository>();
+        builder.Services.AddScoped<UsersRepository, UsersRepository>();
         builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
         
         builder.Services.AddControllers();

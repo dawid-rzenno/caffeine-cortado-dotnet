@@ -10,14 +10,14 @@ namespace cortado.Controllers;
 [Route("api/v1/[controller]")]
 public class AuthController(
     JwtTokenService jwtTokenService,
-    UserRepository userRepository,
+    UsersRepository usersRepository,
     PasswordService passwordService
 ) : ControllerBase
 {
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        User? user = await userRepository.GetByUsernameAsync(request.Username);
+        User? user = await usersRepository.GetByUsernameAsync(request.Username);
 
         if (user == null || !passwordService.VerifyPassword(request.Password, user.Password))
         {
@@ -30,7 +30,7 @@ public class AuthController(
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
-        var user = await userRepository.CreateAsync(
+        var user = await usersRepository.CreateAsync(
             new User
             {
                 Username = request.Username,

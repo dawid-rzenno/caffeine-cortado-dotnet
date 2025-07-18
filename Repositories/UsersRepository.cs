@@ -3,7 +3,7 @@ using Dapper;
 
 namespace cortado.Repositories;
 
-public class UserRepository(DapperContext context) : ICrudRepository<User>
+public class UsersRepository(DapperContext context) : ICrudRepository<User>
 {
     public async Task<IEnumerable<User>> GetAllAsync()
     {
