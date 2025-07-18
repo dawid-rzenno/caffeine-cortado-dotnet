@@ -1,28 +1,66 @@
-﻿using System.Data;
-using cortado.Models;
+﻿using cortado.Models;
 using Dapper;
 
 namespace cortado.Repositories;
 
-public interface IUserRepository
-{
-    Task<IEnumerable<User>> GetAllAsync();
-    Task<User?> GetOneByIdAsync(int id);
-}
-
-public class UserRepository(DapperContext context) : IUserRepository
+public class UserRepository(DapperContext context) : ICrudRepository
 {
     public async Task<IEnumerable<User>> GetAllAsync()
     {
-        using IDbConnection db = context.CreateConnection();
+        var query = "SELECT * FROM Users";
         
-        return await db.QueryAsync<User>("SELECT * FROM Users");
+        using var connection = context.CreateConnection();
+        return await connection.QueryAsync<User>(query);
     }
 
-    public async Task<User?> GetOneByIdAsync(int id)
+    public async Task<User?> GetByIdAsync(int id)
     {
-        using IDbConnection db = context.CreateConnection();
+        var query = """
+            SELECT * FROM Users 
+            WHERE Id = @Id
+        """;
+
+        using var connection = context.CreateConnection();
+        return await connection.QueryFirstOrDefaultAsync<User>(query, new { Id = id });
+    }
+
+    public async Task<int> CreateAsync(User user)
+    {
+        var query = """
+            INSERT INTO Users (Username, Password, Timestamp, UserId) 
+            VALUES (@Username, @Password, @Timestamp, @UserId); 
+            SELECT CAST(SCOPE_IDENTITY() as int)
+        """;
         
-        return await db.QueryFirstOrDefaultAsync<User>("SELECT * FROM Users WHERE Id = @Id", new { Id = id });
+        user.Timestamp = DateTime.Now;
+
+        using var connection = context.CreateConnection();
+        return await connection.QuerySingleAsync<int>(query, user);
+    }
+
+    public async Task<bool> UpdateAsync(User user)
+    {
+        var query = """
+            UPDATE Users SET Username = @Username, Password = @Password, Timestamp = @Timestamp, UserId = @UserId
+            WHERE Id = @Id
+        """;
+        
+        user.Timestamp = DateTime.Now;
+        
+        using var connection = context.CreateConnection();
+        var affectedRows = await connection.ExecuteAsync(query, user);
+        return affectedRows > 0;
+    }
+
+    public async Task<bool> DeleteAsync(int id)
+    {
+        var query = """
+            DELETE FROM Users 
+            WHERE Id = @Id
+        """;
+        
+        using var connection = context.CreateConnection();
+        var affectedRows = await connection.ExecuteAsync(query, new { Id = id });
+        return affectedRows > 0;
     }
 }

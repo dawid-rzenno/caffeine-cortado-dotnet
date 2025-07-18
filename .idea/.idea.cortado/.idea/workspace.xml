@@ -9,14 +9,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="448dc173-9252-4ffa-acff-9cc06e254f77" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/Controllers/UsersController.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DapperContext.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Repositories/UsersRepository.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Repositories/ICrudRepository.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.cortado/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.cortado/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Controllers/UsersController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Controllers/UsersController.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Program.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Program.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/appsettings.Development.json" beforeDir="false" afterPath="$PROJECT_DIR$/appsettings.Development.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/appsettings.json" beforeDir="false" afterPath="$PROJECT_DIR$/appsettings.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cortado.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/cortado.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Repositories/UsersRepository.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Repositories/UsersRepository.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -61,7 +58,6 @@
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "git-widget-placeholder": "master",
     "ignore.virus.scanning.warn.message": "true",
     "node.js.detected.package.eslint": "true",
@@ -70,6 +66,11 @@
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
     "vue.rearranger.settings.migration": "true"
+  },
+  "keyToStringList": {
+    "DatabaseDriversLRU": [
+      "sqlserver"
+    ]
   }
 }]]></component>
   <component name="RunManager" selected=".NET Launch Settings Profile.cortado: http">
@@ -156,7 +157,8 @@
       <option name="presentableId" value="Default" />
       <updated>1752765871031</updated>
       <workItem from="1752765872365" duration="2016000" />
-      <workItem from="1752776469075" duration="5697000" />
+      <workItem from="1752776469075" duration="6167000" />
+      <workItem from="1752831011854" duration="2425000" />
     </task>
     <task id="LOCAL-00001" summary="Initial commit">
       <option name="closed" value="true" />
@@ -190,7 +192,15 @@
       <option name="project" value="LOCAL" />
       <updated>1752778455192</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="Create the user controller and repository.">
+      <option name="closed" value="true" />
+      <created>1752783938500</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1752783938500</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -215,7 +225,8 @@
     <MESSAGE value="Create models." />
     <MESSAGE value="Add Dapper." />
     <MESSAGE value="Add SqlClient." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add SqlClient." />
+    <MESSAGE value="Create the user controller and repository." />
+    <option name="LAST_COMMIT_MESSAGE" value="Create the user controller and repository." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

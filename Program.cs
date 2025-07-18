@@ -10,7 +10,7 @@ public class Program
 
         // Add services to the container.
         builder.Services.AddSingleton<DapperContext>();
-        builder.Services.AddScoped<IUserRepository, UserRepository>();
+        builder.Services.AddScoped<ICrudRepository, UserRepository>();
         builder.Services.AddControllers();
         
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
