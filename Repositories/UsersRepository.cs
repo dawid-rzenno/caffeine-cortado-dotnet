@@ -35,18 +35,33 @@ public class UserRepository(DapperContext context) : ICrudRepository<User>
         return await connection.QueryFirstOrDefaultAsync<User>(query, new { Username = username });
     }
 
-    public async Task<int> CreateAsync(User user)
+    public async Task<User> CreateAsync(User user)
     {
-        var query = """
-                        INSERT INTO Users (Username, Password, Timestamp, UserId) 
-                        VALUES (@Username, @Password, @Timestamp, @UserId); 
-                        SELECT CAST(SCOPE_IDENTITY() as int)
-                    """;
+        var createUserQuery = """
+                                  INSERT INTO Users (Username, Password, Timestamp, UserId) 
+                                  VALUES (@Username, @Password, @Timestamp, @UserId); 
+                                  SELECT CAST(SCOPE_IDENTITY() as int)
+                              """;
 
         user.Timestamp = DateTime.UtcNow;
 
         using var connection = context.CreateConnection();
-        return await connection.QuerySingleAsync<int>(query, user);
+
+        var createdUserId = await connection.QuerySingleAsync<int>(createUserQuery, user);
+
+        var updateUserIdQuery = """
+                                    UPDATE Users SET UserId = @UserId
+                                    WHERE Id = @Id
+                                """;
+
+        await connection.ExecuteAsync(updateUserIdQuery, new { Id = createdUserId, UserId = createdUserId });
+
+        var getUserByIdQuery = """
+                                   SELECT * FROM Users 
+                                   WHERE Id = @Id
+                               """;
+
+        return await connection.QueryFirstAsync<User>(getUserByIdQuery, new { Id = createdUserId });
     }
 
     public async Task<bool> UpdateAsync(User user)

@@ -17,9 +17,10 @@ public class Program
         builder.Services.AddSingleton<JwtTokenService>();
         
         builder.Services.AddScoped<UserRepository, UserRepository>();
+        builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
         
         builder.Services.AddControllers();
-
+        builder.Services.AddHttpContextAccessor();
         builder.Services.AddAuthentication("Bearer")
             .AddJwtBearer("Bearer", options =>
             {

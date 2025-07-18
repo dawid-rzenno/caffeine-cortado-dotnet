@@ -24,14 +24,13 @@ public class AuthController(
             return Unauthorized("Invalid credentials");
         }
 
-        var token = jwtTokenService.GenerateToken(request.Username);
-        return Ok(token);
+        return Ok(jwtTokenService.GenerateToken(user));
     }
 
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
-        var userId = await userRepository.CreateAsync(
+        var user = await userRepository.CreateAsync(
             new User
             {
                 Username = request.Username,
@@ -39,8 +38,6 @@ public class AuthController(
             }
         );
 
-        var user = await userRepository.GetByIdAsync(userId);
-
-        return Created($"api/v1/users/{userId}", user);
+        return Created("", user);
     }
 }
