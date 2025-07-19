@@ -8,38 +8,38 @@ namespace cortado.Controllers;
 [Authorize]
 [ApiController]
 [Route("api/v1/[controller]")]
-public class MilestonesController(IMilestonesRepository repository) : ControllerBase
+public class UserRolesController(IUserRolesRepository repository) : ControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        IEnumerable<Milestone> milestones = await repository.GetAllAsync();
+        IEnumerable<UserRole> userRoles = await repository.GetAllAsync();
         
-        return Ok(milestones);
+        return Ok(userRoles);
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById([FromRoute] int id)
     {
-        Milestone? milestone = await repository.GetByIdAsync(id);
+        UserRole? userRole = await repository.GetByIdAsync(id);
         
-        return milestone != null ? Ok(milestone) : NotFound();
+        return userRole != null ? Ok(userRole) : NotFound();
     }
     
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] Milestone milestone)
+    public async Task<IActionResult> Create([FromBody] UserRole userRole)
     {
-        milestone = await repository.CreateAsync(milestone);
+        userRole = await repository.CreateAsync(userRole);
         
-        return Ok(milestone);
+        return Ok(userRole);
     }
     
     [HttpPut]
-    public async Task<IActionResult> Update([FromBody] Milestone milestone)
+    public async Task<IActionResult> Update([FromBody] UserRole userRole)
     {
-        milestone = await repository.UpdateAsync(milestone);
+        userRole = await repository.UpdateAsync(userRole);
 
-        return Ok(milestone);
+        return Ok(userRole);
     }
 
     [HttpDelete("{id}")]

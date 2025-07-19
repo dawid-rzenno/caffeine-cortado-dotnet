@@ -1,6 +1,6 @@
 ﻿namespace cortado.Models;
 
-public class UserGroup : Entity
+public class UserRole : Entity
 {
     public string Name { get; set; }
 }

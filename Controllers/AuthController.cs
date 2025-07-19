@@ -11,6 +11,7 @@ namespace cortado.Controllers;
 public class AuthController(
     JwtTokenService jwtTokenService,
     IUsersRepository usersRepository,
+    IUserRolesRepository userRolesRepository,
     PasswordService passwordService
 ) : ControllerBase
 {
@@ -34,10 +35,18 @@ public class AuthController(
             new User
             {
                 Username = request.Username,
-                Password = passwordService.HashPassword(request.Password)
+                Password = passwordService.HashPassword(request.Password),
+                RoleId = 1
             }
         );
+        
+        var userRole = await userRolesRepository.GetByIdAsync(user.RoleId);
 
-        return Created("", new UserResponse(user));
+        if (userRole == null)
+        {
+            throw new Exception("Role not found.");
+        }
+
+        return Created("", new UserResponse(user, userRole));
     }
 }

@@ -43,9 +43,9 @@ public class UsersRepository(DapperContext context) : IUsersRepository
     public async Task<User> CreateAsync(User user)
     {
         var createUserQuery = """
-                                  INSERT INTO Users (Username, Password, Timestamp, UserId) 
+                                  INSERT INTO Users (Username, Password, RoleId, Timestamp, UserId) 
                                   OUTPUT INSERTED.*
-                                  VALUES (@Username, @Password, @Timestamp, @UserId); 
+                                  VALUES (@Username, @Password, @RoleId, @Timestamp, @UserId); 
                                   SELECT CAST(SCOPE_IDENTITY() as int)
                               """;
 

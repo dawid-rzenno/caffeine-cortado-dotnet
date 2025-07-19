@@ -9,14 +9,26 @@ namespace cortado.Controllers;
 [Authorize]
 [ApiController]
 [Route("api/v1/[controller]")]
-public class UsersController(IUsersRepository repository) : ControllerBase
+public class UsersController(IUsersRepository repository, IUserRolesRepository userRolesRepository) : ControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        IEnumerable<User> users = await repository.GetAllAsync();
+        IList<UserResponse> userResponses = new List<UserResponse>();
+
+        foreach (var user in await repository.GetAllAsync())
+        {
+            UserRole? userRole = await userRolesRepository.GetByIdAsync(user.RoleId);
+
+            if (userRole == null)
+            {
+                throw new Exception("Role not found");
+            }
+            
+            userResponses.Add(new UserResponse(user, userRole));
+        }
         
-        return Ok(users.Select(u => new UserResponse(u)));
+        return Ok(userResponses);
     }
 
     [HttpGet("{id}")]
@@ -24,7 +36,14 @@ public class UsersController(IUsersRepository repository) : ControllerBase
     {
         User? user = await repository.GetByIdAsync(id);
         
-        return user != null ? Ok(new UserResponse(user)) : NotFound();
+        UserRole? userRole = await userRolesRepository.GetByIdAsync(id);
+
+        if (userRole == null)
+        {
+            throw new Exception("Role not found");
+        }
+        
+        return user != null ? Ok(new UserResponse(user, userRole)) : NotFound();
     }
 
     [HttpDelete("{id}")]

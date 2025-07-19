@@ -8,12 +8,14 @@ public class UserResponse
     public string Username { get; set; }
     public DateTime Timestamp { get; set; }
     public int UserId { get; set; }
+    public UserRole UserRole { get; set; }
 
-    public UserResponse(User user)
+    public UserResponse(User user, UserRole role)
     {
         Id = user.Id;
         Username = user.Username;
         Timestamp = user.Timestamp;
         UserId = user.UserId;
+        UserRole = role;
     }
 }

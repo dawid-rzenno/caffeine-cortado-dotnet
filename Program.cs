@@ -1,6 +1,7 @@
 using System.Text;
 using cortado.Repositories;
 using cortado.Services;
+using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.IdentityModel.Tokens;
 
 namespace cortado;
@@ -18,10 +19,15 @@ public class Program
         builder.Services.AddScoped<IUsersRepository, UsersRepository>();
         builder.Services.AddScoped<IGoalsRepository, GoalsRepository>();
         builder.Services.AddScoped<IMilestonesRepository, MilestonesRepository>();
+        builder.Services.AddScoped<IUserRolesRepository, UserRolesRepository>();
         
         builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
         
-        builder.Services.AddControllers();
+        builder.Services.AddControllers(options =>
+        {
+            options.Conventions.Add(new RouteTokenTransformerConvention(new OutboundParameterTransformer()));
+        });
+        
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddAuthentication("Bearer")
             .AddJwtBearer("Bearer", options =>
