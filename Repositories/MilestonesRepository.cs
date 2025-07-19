@@ -4,7 +4,7 @@ using Dapper;
 
 namespace cortado.Repositories;
 
-public interface IMilestonesRepository : ICrudRepository<Milestone>
+public interface IMilestonesRepository : ICrudRepository<Milestone, Milestone>
 {
 }
 

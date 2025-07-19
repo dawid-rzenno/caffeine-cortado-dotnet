@@ -1,10 +1,10 @@
 ﻿namespace cortado.Repositories;
 
-public interface ICrudRepository<T>
+public interface ICrudRepository<TModel, TDetailsDto>
 {
-    Task<IEnumerable<T>> GetAllAsync();
-    Task<T?> GetByIdAsync(int id);
-    Task<T> CreateAsync(T user);
-    Task<T> UpdateAsync(T user);
+    Task<IEnumerable<TModel>> GetAllAsync();
+    Task<TDetailsDto?> GetByIdAsync(int id);
+    Task<TModel> CreateAsync(TModel user);
+    Task<TModel> UpdateAsync(TModel user);
     Task<bool> DeleteAsync(int id);
 }

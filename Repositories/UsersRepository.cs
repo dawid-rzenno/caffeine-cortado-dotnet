@@ -3,7 +3,7 @@ using Dapper;
 
 namespace cortado.Repositories;
 
-public interface IUsersRepository : ICrudRepository<User>
+public interface IUsersRepository : ICrudRepository<User, User>
 {
     public Task<User?> GetByUsernameAsync(string username);
 }
