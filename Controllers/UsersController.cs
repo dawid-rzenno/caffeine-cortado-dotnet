@@ -14,7 +14,7 @@ public class UsersController(IUsersRepository repository, IUserRolesRepository u
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        IList<UserResponse> userResponses = new List<UserResponse>();
+        IList<UserDetails> userResponses = new List<UserDetails>();
 
         foreach (var user in await repository.GetAllAsync())
         {
@@ -25,7 +25,7 @@ public class UsersController(IUsersRepository repository, IUserRolesRepository u
                 throw new Exception($"UserRole with Id {user.RoleId} of User with Id ${user.Id} not found");
             }
             
-            userResponses.Add(new UserResponse(user, userRole));
+            userResponses.Add(new UserDetails(user, userRole));
         }
         
         return Ok(userResponses);
@@ -48,7 +48,7 @@ public class UsersController(IUsersRepository repository, IUserRolesRepository u
             throw new Exception($"UserRole with Id {user.RoleId} of User with Id ${user.Id} not found");
         }
 
-        return Ok(new UserResponse(user, userRole));
+        return Ok(new UserDetails(user, userRole));
     }
 
     [HttpDelete("{id}")]

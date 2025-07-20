@@ -1,6 +1,6 @@
 ﻿namespace cortado.Models;
 
-public class Ingrednient : Entity
+public class Ingredient : Entity
 {
     public string Name { get; set; }
 }

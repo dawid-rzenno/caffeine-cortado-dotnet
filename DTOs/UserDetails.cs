@@ -2,7 +2,7 @@
 
 namespace cortado.DTOs;
 
-public class UserResponse
+public class UserDetails
 {
     public int Id { get; set; }
     public string Username { get; set; }
@@ -10,7 +10,7 @@ public class UserResponse
     public int UserId { get; set; }
     public UserRole UserRole { get; set; }
 
-    public UserResponse(User user, UserRole role)
+    public UserDetails(User user, UserRole role)
     {
         Id = user.Id;
         Username = user.Username;

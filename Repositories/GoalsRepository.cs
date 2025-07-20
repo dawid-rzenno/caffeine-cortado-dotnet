@@ -5,7 +5,7 @@ using Dapper;
 
 namespace cortado.Repositories;
 
-public interface IGoalsRepository : ICrudRepository<Goal, GoalResponse>
+public interface IGoalsRepository : ICrudRepository<Goal, GoalDetails>
 {
 }
 
@@ -19,7 +19,7 @@ public class GoalsRepository(DapperContext context, ICurrentUserService currentU
         return await connection.QueryAsync<Goal>(query, new { UserId = currentUserService.GetUserId() });
     }
 
-    public async Task<GoalResponse?> GetByIdAsync(int id)
+    public async Task<GoalDetails?> GetByIdAsync(int id)
     {
         var goalQuery = """
                         SELECT * FROM Goals 
@@ -39,7 +39,7 @@ public class GoalsRepository(DapperContext context, ICurrentUserService currentU
         
         IEnumerable<Milestone> milestones = await connection.QueryAsync<Milestone>(milestonesQuery, new { GoalId = id });
 		
-        return new GoalResponse(goal, milestones);
+        return new GoalDetails(goal, milestones);
     }
 
     public async Task<Goal> CreateAsync(Goal goal)

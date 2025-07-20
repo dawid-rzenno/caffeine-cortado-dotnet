@@ -1,6 +1,6 @@
 ﻿namespace cortado.DTOs;
 
-public class LoginRequest
+public class LoginForm
 {
     public string Username { get; set; }
     public string Password { get; set; }

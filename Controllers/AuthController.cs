@@ -16,11 +16,11 @@ public class AuthController(
 ) : ControllerBase
 {
     [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginRequest request)
+    public async Task<IActionResult> Login([FromBody] LoginForm form)
     {
-        User? user = await usersRepository.GetByUsernameAsync(request.Username);
+        User? user = await usersRepository.GetByUsernameAsync(form.Username);
 
-        if (user == null || !passwordService.VerifyPassword(request.Password, user.Password))
+        if (user == null || !passwordService.VerifyPassword(form.Password, user.Password))
         {
             return Unauthorized("Invalid credentials");
         }
@@ -29,13 +29,13 @@ public class AuthController(
     }
 
     [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+    public async Task<IActionResult> Register([FromBody] RegisterForm form)
     {
         var user = await usersRepository.CreateAsync(
             new User
             {
-                Username = request.Username,
-                Password = passwordService.HashPassword(request.Password),
+                Username = form.Username,
+                Password = passwordService.HashPassword(form.Password),
                 RoleId = 1
             }
         );
@@ -47,6 +47,6 @@ public class AuthController(
             throw new Exception("Role not found.");
         }
 
-        return Created("", new UserResponse(user, userRole));
+        return Created("", new UserDetails(user, userRole));
     }
 }
