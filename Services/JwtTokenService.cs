@@ -9,7 +9,7 @@ namespace cortado.Services;
 
 public class JwtTokenService(IConfiguration config)
 {
-    public SignInResponse GenerateToken(User user)
+    public SignInResponse GenerateToken(User user, UserRole userRole)
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["JwtSettings:Key"]));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -27,7 +27,8 @@ public class JwtTokenService(IConfiguration config)
         return new SignInResponse
         {
             Token = new JwtSecurityTokenHandler().WriteToken(token),
-            Expiration = token.ValidTo
+            Expiration = token.ValidTo,
+            User = new UserDetails(user, userRole)
         };
     }
 }

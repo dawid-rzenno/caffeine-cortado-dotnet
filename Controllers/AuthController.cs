@@ -2,6 +2,7 @@
 using cortado.Models;
 using cortado.Repositories;
 using cortado.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace cortado.Controllers;
@@ -12,7 +13,8 @@ public class AuthController(
     JwtTokenService jwtTokenService,
     IUsersRepository usersRepository,
     IUserRolesRepository userRolesRepository,
-    PasswordService passwordService
+    PasswordService passwordService,
+    ICurrentUserService currentUserService
 ) : ControllerBase
 {
     [HttpPost("sign-in")]
@@ -24,8 +26,15 @@ public class AuthController(
         {
             return Unauthorized("Invalid credentials.");
         }
+        
+        UserRole? userRole = await userRolesRepository.GetByIdAsync(user.RoleId);
 
-        return Ok(jwtTokenService.GenerateToken(user));
+        if (userRole == null)
+        {
+            throw new Exception($"UserRole with Id {user.RoleId} of User with Id ${user.Id} not found");
+        }
+
+        return Ok(jwtTokenService.GenerateToken(user, userRole));
     }
 
     [HttpPost("sign-up")]
@@ -40,7 +49,7 @@ public class AuthController(
             throw new Exception($"Role with Id {defaultUserRoleId} not found.");
         }
         
-        var user = await usersRepository.CreateAsync(
+        await usersRepository.CreateAsync(
             new User
             {
                 Username = form.Username,
@@ -49,6 +58,20 @@ public class AuthController(
             }
         );
 
-        return Created("", new UserDetails(user, userRole));
+        return NoContent();
+    }
+
+    [Authorize]
+    [HttpGet("me")]
+    public async Task<IActionResult> Get()
+    {
+        User? user = await usersRepository.GetByIdAsync(currentUserService.GetUserId());
+        
+        if (user == null)
+        {
+            return Unauthorized("Invalid credentials.");
+        }
+        
+        return Ok(user);
     }
 }
