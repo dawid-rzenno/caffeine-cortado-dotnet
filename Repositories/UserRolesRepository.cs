@@ -32,9 +32,9 @@ public class UserRolesRepository(DapperContext context, ICurrentUserService curr
     public async Task<UserRole> CreateAsync(UserRole userRole)
     {
         var createUserRoleQuery = """
-                                  INSERT INTO UserRoles (Name, Timestamp, UserId) 
+                                  INSERT INTO UserRoles (Id, Name, Timestamp, UserId) 
                                   OUTPUT INSERTED.*
-                                  VALUES (@Name, @Timestamp, @UserId)
+                                  VALUES (@Id, @Name, @Timestamp, @UserId)
                               """;
 
         userRole.Timestamp = DateTime.UtcNow;
@@ -48,7 +48,7 @@ public class UserRolesRepository(DapperContext context, ICurrentUserService curr
     public async Task<UserRole> UpdateAsync(UserRole userRole)
     {
         var query = """
-                        UPDATE UserRoles SET Name = @Name, Timestamp = @Timestamp, UserId = @UserId
+                        UPDATE UserRoles SET Id = @Id, Name = @Name, Timestamp = @Timestamp, UserId = @UserId
                         OUTPUT INSERTED.*
                         WHERE Id = @Id
                     """;

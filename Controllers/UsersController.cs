@@ -22,7 +22,7 @@ public class UsersController(IUsersRepository repository, IUserRolesRepository u
 
             if (userRole == null)
             {
-                throw new Exception("Role not found");
+                throw new Exception($"UserRole with Id {user.RoleId} of User with Id ${user.Id} not found");
             }
             
             userResponses.Add(new UserResponse(user, userRole));
@@ -36,14 +36,19 @@ public class UsersController(IUsersRepository repository, IUserRolesRepository u
     {
         User? user = await repository.GetByIdAsync(id);
         
-        UserRole? userRole = await userRolesRepository.GetByIdAsync(id);
+        if (user == null)
+        {
+            return NotFound($"User with Id ${id} not found");
+        }
+        
+        UserRole? userRole = await userRolesRepository.GetByIdAsync(user.RoleId);
 
         if (userRole == null)
         {
-            throw new Exception("Role not found");
+            throw new Exception($"UserRole with Id {user.RoleId} of User with Id ${user.Id} not found");
         }
-        
-        return user != null ? Ok(new UserResponse(user, userRole)) : NotFound();
+
+        return Ok(new UserResponse(user, userRole));
     }
 
     [HttpDelete("{id}")]
