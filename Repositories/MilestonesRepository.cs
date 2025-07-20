@@ -12,7 +12,7 @@ public class MilestonesRepository(DapperContext context, ICurrentUserService cur
 {
     public async Task<IEnumerable<Milestone>> GetAllAsync()
     {
-        var query = "SELECT * FROM Milestones";
+        var query = "SELECT * FROM Milestones WHERE UserId = @UserId";
 
         using var connection = context.CreateConnection();
         return await connection.QueryAsync<Milestone>(query);
@@ -22,7 +22,7 @@ public class MilestonesRepository(DapperContext context, ICurrentUserService cur
     {
         var query = """
                         SELECT * FROM Milestones 
-                        WHERE Id = @Id
+                        WHERE Id = @Id AND UserId = @UserId
                     """;
 
         using var connection = context.CreateConnection();
@@ -50,7 +50,7 @@ public class MilestonesRepository(DapperContext context, ICurrentUserService cur
         var query = """
                         UPDATE Milestones SET Name = @Name, GoalId = @GoalId, Timestamp = @Timestamp, UserId = @UserId
                         OUTPUT INSERTED.*
-                        WHERE Id = @Id
+                        WHERE Id = @Id AND UserId = @UserId
                     """;
 
         milestone.Timestamp = DateTime.UtcNow;
