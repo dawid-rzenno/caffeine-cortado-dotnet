@@ -1,22 +1,21 @@
-﻿using System.Security.Claims;
-
-namespace cortado.Services;
+﻿namespace cortado.Services;
 
 public interface ICurrentUserService
 {
-    ClaimsPrincipal? User { get; }
-    
-    int? GetUserId();
+    int GetUserId();
 }
 
 public class CurrentUserService(IHttpContextAccessor contextAccessor) : ICurrentUserService
 {
-    public ClaimsPrincipal? User => contextAccessor.HttpContext?.User;
-
-    public int? GetUserId()
+    public int GetUserId()
     {
-        string? userId = User?.FindFirst("UserId")?.Value;
+        string? userId = contextAccessor.HttpContext?.User?.FindFirst("UserId")?.Value;
 
-        return !string.IsNullOrEmpty(userId) ? int.Parse(userId) : null;
+        if (string.IsNullOrEmpty(userId))
+        {
+            throw new Exception("User not found.");
+        }
+
+        return int.Parse(userId);
     }
 }

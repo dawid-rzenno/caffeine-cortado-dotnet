@@ -38,7 +38,7 @@ public class UserRolesRepository(DapperContext context, ICurrentUserService curr
                               """;
 
         userRole.Timestamp = DateTime.UtcNow;
-        userRole.UserId = (int)currentUserService.GetUserId()!;
+        userRole.UserId = currentUserService.GetUserId();
 
         using var connection = context.CreateConnection();
 
@@ -54,7 +54,7 @@ public class UserRolesRepository(DapperContext context, ICurrentUserService curr
                     """;
 
         userRole.Timestamp = DateTime.UtcNow;
-        userRole.UserId = (int)currentUserService.GetUserId()!;
+        userRole.UserId = currentUserService.GetUserId();
 
         using var connection = context.CreateConnection();
 

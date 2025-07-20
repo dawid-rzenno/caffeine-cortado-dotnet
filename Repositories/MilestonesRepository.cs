@@ -38,7 +38,7 @@ public class MilestonesRepository(DapperContext context, ICurrentUserService cur
                               """;
 
         milestone.Timestamp = DateTime.UtcNow;
-        milestone.UserId = (int)currentUserService.GetUserId()!;
+        milestone.UserId = currentUserService.GetUserId();
 
         using var connection = context.CreateConnection();
 
@@ -54,7 +54,7 @@ public class MilestonesRepository(DapperContext context, ICurrentUserService cur
                     """;
 
         milestone.Timestamp = DateTime.UtcNow;
-        milestone.UserId = (int)currentUserService.GetUserId()!;
+        milestone.UserId = currentUserService.GetUserId();
 
         using var connection = context.CreateConnection();
 

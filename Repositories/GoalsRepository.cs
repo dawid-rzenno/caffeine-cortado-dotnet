@@ -13,17 +13,17 @@ public class GoalsRepository(DapperContext context, ICurrentUserService currentU
 {
     public async Task<IEnumerable<Goal>> GetAllAsync()
     {
-        var query = "SELECT * FROM Goals";
+        var query = "SELECT * FROM Goals WHERE UserId = @UserId";
 
         using var connection = context.CreateConnection();
-        return await connection.QueryAsync<Goal>(query);
+        return await connection.QueryAsync<Goal>(query, new { UserId = currentUserService.GetUserId() });
     }
 
     public async Task<GoalResponse?> GetByIdAsync(int id)
     {
         var goalQuery = """
                         SELECT * FROM Goals 
-                        WHERE Id = @Id
+                        WHERE Id = @Id AND UserId = @UserId
                     """;
         
         var milestonesQuery = """
@@ -32,8 +32,8 @@ public class GoalsRepository(DapperContext context, ICurrentUserService currentU
                               """;
         
         using var connection = context.CreateConnection();
-
-        Goal? goal = await connection.QueryFirstOrDefaultAsync<Goal>(goalQuery, new { Id = id });
+        
+        Goal? goal = await connection.QueryFirstOrDefaultAsync<Goal>(goalQuery, new { Id = id, UserId = currentUserService.GetUserId() });
 
         if (goal == null) return null;
         
@@ -51,7 +51,7 @@ public class GoalsRepository(DapperContext context, ICurrentUserService currentU
                               """;
 
         goal.Timestamp = DateTime.UtcNow;
-        goal.UserId = (int)currentUserService.GetUserId()!;
+        goal.UserId = currentUserService.GetUserId();
 
         using var connection = context.CreateConnection();
 
@@ -63,11 +63,11 @@ public class GoalsRepository(DapperContext context, ICurrentUserService currentU
         var query = """
                         UPDATE Goals SET Name = @Name, Timestamp = @Timestamp, UserId = @UserId
                         OUTPUT INSERTED.*
-                        WHERE Id = @Id
+                        WHERE Id = @Id AND UserId = @UserId
                     """;
 
         goal.Timestamp = DateTime.UtcNow;
-        goal.UserId = (int)currentUserService.GetUserId()!;
+        goal.UserId = currentUserService.GetUserId();
 
         using var connection = context.CreateConnection();
 
