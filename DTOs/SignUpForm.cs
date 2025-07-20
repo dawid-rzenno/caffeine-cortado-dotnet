@@ -1,6 +1,6 @@
 ﻿namespace cortado.DTOs;
 
-public class RegisterForm
+public class SignUpForm
 {
     public string Username { get; set; }
     public string Password { get; set; }

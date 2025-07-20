@@ -15,37 +15,39 @@ public class AuthController(
     PasswordService passwordService
 ) : ControllerBase
 {
-    [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginForm form)
+    [HttpPost("sign-in")]
+    public async Task<IActionResult> SignIn([FromBody] SignInForm form)
     {
         User? user = await usersRepository.GetByUsernameAsync(form.Username);
 
         if (user == null || !passwordService.VerifyPassword(form.Password, user.Password))
         {
-            return Unauthorized("Invalid credentials");
+            return Unauthorized("Invalid credentials.");
         }
 
         return Ok(jwtTokenService.GenerateToken(user));
     }
 
-    [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody] RegisterForm form)
+    [HttpPost("sign-up")]
+    public async Task<IActionResult> SignUp([FromBody] SignUpForm form)
     {
+        var defaultUserRoleId = 1;
+        
+        var userRole = await userRolesRepository.GetByIdAsync(defaultUserRoleId);
+
+        if (userRole == null)
+        {
+            throw new Exception($"Role with Id {defaultUserRoleId} not found.");
+        }
+        
         var user = await usersRepository.CreateAsync(
             new User
             {
                 Username = form.Username,
                 Password = passwordService.HashPassword(form.Password),
-                RoleId = 1
+                RoleId = defaultUserRoleId
             }
         );
-        
-        var userRole = await userRolesRepository.GetByIdAsync(user.RoleId);
-
-        if (userRole == null)
-        {
-            throw new Exception("Role not found.");
-        }
 
         return Created("", new UserDetails(user, userRole));
     }
