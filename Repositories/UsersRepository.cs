@@ -6,6 +6,7 @@ namespace cortado.Repositories;
 
 public interface IUsersRepository : ICrudRepository<User, User>
 {
+    public Task<IEnumerable<User>> GetAllByTermAsync(string term);
     public Task<User?> GetByUsernameAsync(string username);
     public Task<User> UpdatePasswordAsync(User user);
 }
@@ -18,6 +19,14 @@ public class UsersRepository(DapperContext context, PasswordService passwordServ
 
         using var connection = context.CreateConnection();
         return await connection.QueryAsync<User>(query);
+    }
+
+    public async Task<IEnumerable<User>> GetAllByTermAsync(string term)
+    {
+        var query = "SELECT * FROM Users WHERE Username LIKE @term";
+
+        using var connection = context.CreateConnection();
+        return await connection.QueryAsync<User>(query, new { term });
     }
 
     public async Task<User?> GetByIdAsync(int id)
@@ -52,6 +61,7 @@ public class UsersRepository(DapperContext context, PasswordService passwordServ
                               """;
 
         user.Timestamp = DateTime.UtcNow;
+        user.Password = passwordService.HashPassword(user.Password);
 
         using var connection = context.CreateConnection();
 
@@ -81,7 +91,7 @@ public class UsersRepository(DapperContext context, PasswordService passwordServ
 
         return await connection.QuerySingleAsync<User>(query, user);
     }
-    
+
     public async Task<User> UpdatePasswordAsync(User user)
     {
         var query = """

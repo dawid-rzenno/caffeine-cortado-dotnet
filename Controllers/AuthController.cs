@@ -22,7 +22,12 @@ public class AuthController(
     {
         User? user = await usersRepository.GetByUsernameAsync(form.Username);
 
-        if (user == null || !passwordService.VerifyPassword(form.Password, user.Password))
+        if (user == null)
+        {
+            return NotFound($"User with Username ${form.Username} not found");
+        }
+
+        if (!passwordService.VerifyPassword(form.Password, user.Password))
         {
             return Unauthorized("Invalid credentials.");
         }
@@ -53,7 +58,7 @@ public class AuthController(
             new User
             {
                 Username = form.Username,
-                Password = passwordService.HashPassword(form.Password),
+                Password = form.Password,
                 RoleId = defaultUserRoleId
             }
         );
@@ -84,7 +89,8 @@ public class AuthController(
         {
             return NotFound($"User with Id ${form.Id} not found");
         }
-        
+
+        user.Password = form.Password;
         user = await usersRepository.UpdatePasswordAsync(user);
         
         UserRole? userRole = await userRolesRepository.GetByIdAsync(user.RoleId);

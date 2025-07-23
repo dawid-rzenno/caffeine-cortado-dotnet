@@ -12,11 +12,15 @@ namespace cortado.Controllers;
 public class UsersController(IUsersRepository repository, IUserRolesRepository userRolesRepository) : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll([FromQuery] string? term)
     {
         IList<UserDetails> userResponses = new List<UserDetails>();
+        
+        IEnumerable<User> users = string.IsNullOrEmpty(term) 
+            ? await repository.GetAllAsync() 
+            : await repository.GetAllByTermAsync(term);
 
-        foreach (var user in await repository.GetAllAsync())
+        foreach (var user in users)
         {
             UserRole? userRole = await userRolesRepository.GetByIdAsync(user.RoleId);
 
