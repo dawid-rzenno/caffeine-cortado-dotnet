@@ -74,4 +74,26 @@ public class AuthController(
         
         return Ok(user);
     }
+    
+    [HttpPut("password")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordForm form)
+    {
+        User? user = await usersRepository.GetByIdAsync(form.Id);
+        
+        if (user == null)
+        {
+            return NotFound($"User with Id ${form.Id} not found");
+        }
+        
+        user = await usersRepository.UpdatePasswordAsync(user);
+        
+        UserRole? userRole = await userRolesRepository.GetByIdAsync(user.RoleId);
+
+        if (userRole == null)
+        {
+            throw new Exception($"UserRole with Id {user.RoleId} of User with Id ${user.Id} not found");
+        }
+
+        return Ok(new UserDetails(user, userRole));
+    }
 }

@@ -7,6 +7,7 @@ namespace cortado.Repositories;
 public interface IUsersRepository : ICrudRepository<User, User>
 {
     public Task<User?> GetByUsernameAsync(string username);
+    public Task<User> UpdatePasswordAsync(User user);
 }
 
 public class UsersRepository(DapperContext context, PasswordService passwordService) : IUsersRepository
@@ -69,7 +70,22 @@ public class UsersRepository(DapperContext context, PasswordService passwordServ
     public async Task<User> UpdateAsync(User user)
     {
         var query = """
-                        UPDATE Users SET Username = @Username, Password = @Password, Timestamp = @Timestamp, UserId = @UserId
+                        UPDATE Users SET Username = @Username, RoleId = @RoleId, Timestamp = @Timestamp, UserId = @UserId
+                        OUTPUT INSERTED.*
+                        WHERE Id = @Id
+                    """;
+
+        user.Timestamp = DateTime.UtcNow;
+
+        using var connection = context.CreateConnection();
+
+        return await connection.QuerySingleAsync<User>(query, user);
+    }
+    
+    public async Task<User> UpdatePasswordAsync(User user)
+    {
+        var query = """
+                        UPDATE Users SET Password = @Password, Timestamp = @Timestamp, UserId = @UserId
                         OUTPUT INSERTED.*
                         WHERE Id = @Id
                     """;

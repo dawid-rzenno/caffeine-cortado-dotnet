@@ -52,13 +52,23 @@ public class UsersController(IUsersRepository repository, IUserRolesRepository u
     }
     
     [HttpPut]
-    public async Task<IActionResult> Update([FromBody] User user)
+    public async Task<IActionResult> Update([FromBody] UpdateUserForm form)
     {
-        UserRole? userRole = await userRolesRepository.GetByIdAsync(user.RoleId);
+        User? user = await repository.GetByIdAsync(form.Id);
+        
+        if (user == null)
+        {
+            return NotFound($"User with Id ${form.Id} not found");
+        }
+        
+        user.Username = form.Username;
+        user.RoleId = form.RoleId;
+        
+        UserRole? userRole = await userRolesRepository.GetByIdAsync(form.RoleId);
 
         if (userRole == null)
         {
-            throw new Exception($"UserRole with Id {user.RoleId} of User with Id ${user.Id} not found");
+            throw new Exception($"UserRole with Id {form.RoleId} of User with Id ${form.Id} not found");
         }
         
         user = await repository.UpdateAsync(user);
