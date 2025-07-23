@@ -49,7 +49,7 @@ public class AuthController(
             throw new Exception($"Role with Id {defaultUserRoleId} not found.");
         }
         
-        await usersRepository.CreateAsync(
+        User user = await usersRepository.CreateAsync(
             new User
             {
                 Username = form.Username,
@@ -58,7 +58,7 @@ public class AuthController(
             }
         );
 
-        return NoContent();
+        return Ok(new { Id = user.Id });
     }
 
     [Authorize]

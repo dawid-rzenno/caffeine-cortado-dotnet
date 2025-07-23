@@ -8,7 +8,7 @@ public class UserDetails
     public string Username { get; set; }
     public DateTime Timestamp { get; set; }
     public int UserId { get; set; }
-    public UserRole UserRole { get; set; }
+    public UserRole Role { get; set; }
 
     public UserDetails(User user, UserRole role)
     {
@@ -16,6 +16,6 @@ public class UserDetails
         Username = user.Username;
         Timestamp = user.Timestamp;
         UserId = user.UserId;
-        UserRole = role;
+        Role = role;
     }
 }

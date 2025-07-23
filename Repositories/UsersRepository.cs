@@ -1,4 +1,5 @@
 ﻿using cortado.Models;
+using cortado.Services;
 using Dapper;
 
 namespace cortado.Repositories;
@@ -8,7 +9,7 @@ public interface IUsersRepository : ICrudRepository<User, User>
     public Task<User?> GetByUsernameAsync(string username);
 }
 
-public class UsersRepository(DapperContext context) : IUsersRepository
+public class UsersRepository(DapperContext context, PasswordService passwordService) : IUsersRepository
 {
     public async Task<IEnumerable<User>> GetAllAsync()
     {
@@ -74,6 +75,7 @@ public class UsersRepository(DapperContext context) : IUsersRepository
                     """;
 
         user.Timestamp = DateTime.UtcNow;
+        user.Password = passwordService.HashPassword(user.Password);
 
         using var connection = context.CreateConnection();
 

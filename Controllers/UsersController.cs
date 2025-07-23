@@ -50,6 +50,21 @@ public class UsersController(IUsersRepository repository, IUserRolesRepository u
 
         return Ok(new UserDetails(user, userRole));
     }
+    
+    [HttpPut]
+    public async Task<IActionResult> Update([FromBody] User user)
+    {
+        UserRole? userRole = await userRolesRepository.GetByIdAsync(user.RoleId);
+
+        if (userRole == null)
+        {
+            throw new Exception($"UserRole with Id {user.RoleId} of User with Id ${user.Id} not found");
+        }
+        
+        user = await repository.UpdateAsync(user);
+
+        return Ok(new UserDetails(user, userRole));
+    }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete([FromRoute] int id)
