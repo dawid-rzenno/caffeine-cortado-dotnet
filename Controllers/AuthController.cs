@@ -4,6 +4,7 @@ using cortado.Repositories;
 using cortado.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 
 namespace cortado.Controllers;
 
@@ -53,17 +54,24 @@ public class AuthController(
         {
             throw new Exception($"Role with Id {defaultUserRoleId} not found.");
         }
-        
-        User user = await usersRepository.CreateAsync(
-            new User
-            {
-                Username = form.Username,
-                Password = form.Password,
-                RoleId = defaultUserRoleId
-            }
-        );
 
-        return Ok(new { Id = user.Id });
+        try
+        {
+            User user = await usersRepository.CreateAsync(
+                new User
+                {
+                    Username = form.Username,
+                    Password = form.Password,
+                    RoleId = defaultUserRoleId
+                }
+            );
+
+            return Ok(new { Id = user.Id });
+        }
+        catch (SqlException ex) when (ex.Number is 2627 or 2601)
+        {
+            return Conflict($"User with Username {form.Username} already exists.");
+        }
     }
 
     [Authorize]

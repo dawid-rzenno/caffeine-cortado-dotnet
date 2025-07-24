@@ -1,5 +1,4 @@
 ﻿using cortado.Models;
-using cortado.Services;
 using Dapper;
 
 namespace cortado.Repositories;
@@ -8,7 +7,7 @@ public interface IUserRolesRepository : ICrudRepository<UserRole, UserRole>
 {
 }
 
-public class UserRolesRepository(DapperContext context, ICurrentUserService currentUserService) : IUserRolesRepository
+public class UserRolesRepository(DapperContext context) : IUserRolesRepository
 {
     public async Task<IEnumerable<UserRole>> GetAllAsync()
     {

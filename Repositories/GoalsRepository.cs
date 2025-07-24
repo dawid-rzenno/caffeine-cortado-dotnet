@@ -7,6 +7,7 @@ namespace cortado.Repositories;
 
 public interface IGoalsRepository : ICrudRepository<Goal, GoalDetails>
 {
+    public Task<IEnumerable<Goal>> GetAllByUserIdAsync(int userId);
 }
 
 public class GoalsRepository(DapperContext context, ICurrentUserService currentUserService) : IGoalsRepository
@@ -17,6 +18,14 @@ public class GoalsRepository(DapperContext context, ICurrentUserService currentU
 
         using var connection = context.CreateConnection();
         return await connection.QueryAsync<Goal>(query, new { UserId = currentUserService.GetUserId() });
+    }
+    
+    public async Task<IEnumerable<Goal>> GetAllByUserIdAsync(int userId)
+    {
+        var query = "SELECT * FROM Goals WHERE UserId LIKE @UserId";
+
+        using var connection = context.CreateConnection();
+        return await connection.QueryAsync<Goal>(query, new { UserId = userId });
     }
 
     public async Task<GoalDetails?> GetByIdAsync(int id)
