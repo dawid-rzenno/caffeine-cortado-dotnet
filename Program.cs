@@ -21,6 +21,7 @@ public class Program
         builder.Services.AddScoped<IMilestonesRepository, MilestonesRepository>();
         builder.Services.AddScoped<IUserRolesRepository, UserRolesRepository>();
         builder.Services.AddScoped<IDietsRepository, DietsRepository>();
+        builder.Services.AddScoped<IDietDaysRepository, DietDaysRepository>();
         builder.Services.AddScoped<IMealsRepository, MealsRepository>();
         builder.Services.AddScoped<IIngredientsRepository, IngredientsRepository>();
         builder.Services.AddScoped<INutrientsRepository, NutrientsRepository>();
