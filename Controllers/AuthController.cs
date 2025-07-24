@@ -77,7 +77,14 @@ public class AuthController(
             return Unauthorized("Invalid credentials.");
         }
         
-        return Ok(user);
+        UserRole? userRole = await userRolesRepository.GetByIdAsync(user.RoleId);
+
+        if (userRole == null)
+        {
+            throw new Exception($"UserRole with Id {user.RoleId} of User with Id ${user.Id} not found");
+        }
+        
+        return Ok(new UserDetails(user, userRole));
     }
     
     [HttpPut("password")]
