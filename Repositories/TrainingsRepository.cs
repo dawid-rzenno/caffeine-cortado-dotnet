@@ -32,7 +32,7 @@ public class TrainingsRepository(DapperContext context, ICurrentUserService curr
 
         if (training == null) return null;
         
-        return new TrainingDetails(training, new List<TrainingDay>());
+        return new TrainingDetails(training, new List<Exercise>());
     }
 
     public async Task<Training> CreateAsync(Training training)

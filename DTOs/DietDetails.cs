@@ -4,12 +4,12 @@ namespace cortado.DTOs;
 
 public class DietDetails : Diet
 {
-    public IEnumerable<DietDay> Days { get; set; }
+    public IEnumerable<Meal> Meals { get; set; }
 
-    public DietDetails(Diet diet, IEnumerable<DietDay> days)
+    public DietDetails(Diet diet, IEnumerable<Meal> meals)
     {
         Id = diet.Id;
         Name = diet.Name;
-        Days = days;
+        Meals = meals;
     }
 }

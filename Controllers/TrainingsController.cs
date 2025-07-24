@@ -10,7 +10,7 @@ namespace cortado.Controllers;
 [Route("api/v1/[controller]")]
 public class TrainingsController(
     ITrainingsRepository repository,
-    ITrainingDaysRepository trainingDaysRepository
+    IExercisesRepository exercisesRepository
 ) : ControllerBase
 {
     [HttpGet]
@@ -53,30 +53,30 @@ public class TrainingsController(
         return success ? NoContent() : NotFound();
     }
     
-    [HttpPost("{id}/training-days")]
-    public async Task<IActionResult> CreateTrainingDay([FromRoute] int id, [FromBody] TrainingDay trainingDay)
+    [HttpPost("{id}/exercises")]
+    public async Task<IActionResult> CreateTrainingDay([FromRoute] int id, [FromBody] Exercise exercise)
     {
-        await trainingDaysRepository.CreateAsync(trainingDay);
+        await exercisesRepository.CreateAsync(exercise);
         
         Training? goal = await repository.GetByIdAsync(id);
 
         return goal != null ? Ok(goal) : NotFound();
     }
     
-    [HttpPut("{id}/training-days")]
-    public async Task<IActionResult> UpdateTrainingDay([FromRoute] int id, [FromBody] TrainingDay trainingDay)
+    [HttpPut("{id}/exercises")]
+    public async Task<IActionResult> UpdateTrainingDay([FromRoute] int id, [FromBody] Exercise exercise)
     {
-        await trainingDaysRepository.UpdateAsync(trainingDay);
+        await exercisesRepository.UpdateAsync(exercise);
 
         Training? goal = await repository.GetByIdAsync(id);
 
         return goal != null ? Ok(goal) : NotFound();
     }
 
-    [HttpDelete("{id}/training-days/{trainingDayId}")]
-    public async Task<IActionResult> DeleteTrainingDay([FromRoute] int id, [FromRoute] int trainingDayId)
+    [HttpDelete("{id}/exercises/{exerciseId}")]
+    public async Task<IActionResult> DeleteTrainingDay([FromRoute] int id, [FromRoute] int exerciseId)
     {
-        await trainingDaysRepository.DeleteAsync(trainingDayId);
+        await exercisesRepository.DeleteAsync(exerciseId);
         
         Training? goal = await repository.GetByIdAsync(id);
 

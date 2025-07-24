@@ -5,15 +5,15 @@ namespace cortado.DTOs;
 public class DashboardResponse
 {
     public MotivationalQuote? MotivationalQuote { get; set; }
-    public DietDay? DietDay { get; set; }
-    public TrainingDay? TrainingDay { get; set; }
+    public DietDetails? Diet { get; set; }
+    public TrainingDetails? Training { get; set; }
     public IEnumerable<Goal> Goals { get; set; }
 
-    public DashboardResponse(MotivationalQuote? motivationalQuote, DietDay? dietDay, TrainingDay? trainingDay, IEnumerable<Goal> goals)
+    public DashboardResponse(MotivationalQuote? motivationalQuote, DietDetails? diet, TrainingDetails? training, IEnumerable<Goal> goals)
     {
         MotivationalQuote = motivationalQuote;
-        DietDay = dietDay;
-        TrainingDay = trainingDay;
+        Diet = diet;
+        Training = training;
         Goals = goals;
     }
 }

@@ -32,7 +32,7 @@ public class DietsRepository(DapperContext context, ICurrentUserService currentU
 
         if (diet == null) return null;
 		
-        return new DietDetails(diet, new List<DietDay>());
+        return new DietDetails(diet, new List<Meal>());
     }
 
     public async Task<Diet> CreateAsync(Diet diet)
