@@ -7,6 +7,7 @@ namespace cortado.Repositories;
 
 public interface IDietsRepository : ICrudRepository<Diet, DietDetails>
 {
+    public Task<IEnumerable<Diet>> GetAllByTermAsync(string term, bool globalSearch);
 }
 
 public class DietsRepository(DapperContext context, ICurrentUserService currentUserService) : IDietsRepository
@@ -17,6 +18,17 @@ public class DietsRepository(DapperContext context, ICurrentUserService currentU
 
         using var connection = context.CreateConnection();
         return await connection.QueryAsync<Diet>(query, new { UserId = currentUserService.GetUserId() });
+    }
+    
+    public async Task<IEnumerable<Diet>> GetAllByTermAsync(string term, bool globalSearch)
+    {
+        var query = globalSearch
+            ? "SELECT TOP 10 * FROM Diets WHERE Name LIKE @Term"
+            : "SELECT TOP 10 * FROM Diets WHERE Name LIKE @Term AND UserId = @UserId";
+        
+        using var connection = context.CreateConnection();
+
+        return await connection.QueryAsync<Diet>(query, new { Term = $"%{term}%", UserId = currentUserService.GetUserId() });
     }
 
     public async Task<DietDetails?> GetByIdAsync(int id)

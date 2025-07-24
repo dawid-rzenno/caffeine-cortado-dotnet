@@ -14,9 +14,11 @@ public class MealsController(
 ) : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll([FromQuery] string? term, [FromQuery] bool globalSearch = false)
     {
-        IEnumerable<Meal> meals = await repository.GetAllAsync();
+        IEnumerable<Meal> meals = string.IsNullOrEmpty(term) 
+            ? await repository.GetAllAsync() 
+            : await repository.GetAllByTermAsync(term, globalSearch);
 
         return Ok(meals);
     }

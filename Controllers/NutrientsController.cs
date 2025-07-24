@@ -13,9 +13,11 @@ public class NutrientsController(
 ) : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll([FromQuery] string? term, [FromQuery] bool globalSearch = false)
     {
-        IEnumerable<Nutrient> nutrients = await repository.GetAllAsync();
+        IEnumerable<Nutrient> nutrients = string.IsNullOrEmpty(term) 
+            ? await repository.GetAllAsync() 
+            : await repository.GetAllByTermAsync(term, globalSearch);
 
         return Ok(nutrients);
     }
