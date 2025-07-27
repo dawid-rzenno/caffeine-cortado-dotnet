@@ -9,51 +9,26 @@ namespace cortado.Controllers;
 [ApiController]
 [Route("api/v1/[controller]")]
 public class NutrientsController(
-    INutrientsRepository repository,
     INutrientTypesRepository typesRepository,
     INutrientNamesRepository namesRepository
 ) : ControllerBase
 {
-    [HttpGet]
-    public async Task<IActionResult> GetAll([FromQuery] string? term, [FromQuery] bool globalSearch = false)
+    [HttpGet("types")]
+    public async Task<IActionResult> GetAllTypes([FromQuery] string? term, [FromQuery] bool globalSearch = false)
     {
-        IEnumerable<Nutrient> nutrients = string.IsNullOrEmpty(term) 
-            ? await repository.GetAllAsync() 
-            : await repository.GetAllByTermAsync(term, globalSearch);
+        IEnumerable<NutrientType> nutrients = string.IsNullOrEmpty(term)
+            ? await typesRepository.GetAllAsync() 
+            : await typesRepository.GetAllByTermAsync(term, globalSearch);
 
         return Ok(nutrients);
     }
-
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetById([FromRoute] int id)
+    
+    [HttpGet("types/{id}")]
+    public async Task<IActionResult> GetTypeById([FromRoute] int id)
     {
-        Nutrient? nutrient = await repository.GetByIdAsync(id);
+        NutrientType? nutrientType = await typesRepository.GetByIdAsync(id);
 
-        return nutrient != null ? Ok(nutrient) : NotFound();
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> Create([FromBody] Nutrient nutrient)
-    {
-        nutrient = await repository.CreateAsync(nutrient);
-
-        return Ok(nutrient);
-    }
-
-    [HttpPut]
-    public async Task<IActionResult> Update([FromBody] Nutrient nutrient)
-    {
-        nutrient = await repository.UpdateAsync(nutrient);
-
-        return Ok(nutrient);
-    }
-
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete([FromRoute] int id)
-    {
-        var success = await repository.DeleteAsync(id);
-
-        return success ? NoContent() : NotFound();
+        return nutrientType != null ? Ok(nutrientType) : NotFound();
     }
     
     [HttpPost("types")]
@@ -70,6 +45,24 @@ public class NutrientsController(
         var success = await typesRepository.DeleteAsync(id);
 
         return success ? NoContent() : NotFound();
+    }
+    
+    [HttpGet("names")]
+    public async Task<IActionResult> GetAllNames([FromQuery] string? term, [FromQuery] bool globalSearch = false)
+    {
+        IEnumerable<NutrientName> nutrients = string.IsNullOrEmpty(term) 
+            ? await namesRepository.GetAllAsync() 
+            : await namesRepository.GetAllByTermAsync(term, globalSearch);
+
+        return Ok(nutrients);
+    }
+    
+    [HttpGet("names/{id}")]
+    public async Task<IActionResult> GetNameById([FromRoute] int id)
+    {
+        NutrientName? nutrientName = await namesRepository.GetByIdAsync(id);
+
+        return nutrientName != null ? Ok(nutrientName) : NotFound();
     }
     
     [HttpPost("names")]

@@ -8,6 +8,8 @@ public class NutrientDetails : Nutrient
     public NutrientType Type { get; set; }
     public NutrientName Name { get; set; }
     
+    public NutrientDetails() {}
+    
     public NutrientDetails(Nutrient nutrient, NutrientName name, NutrientType type, MassUnit massUnit)
     {
         Id = nutrient.Id;
