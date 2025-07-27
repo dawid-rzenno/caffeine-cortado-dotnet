@@ -28,6 +28,8 @@ public class Program
         builder.Services.AddScoped<IExercisesRepository, ExercisesRepository>();
         builder.Services.AddScoped<IMotivationalQuotesRepository, MotivationalQuotesRepository>();
         
+        builder.Services.AddScoped<IDietMealsRepository, DietMealsRepository>();
+        
         builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
         
         builder.Services.AddControllers(options =>

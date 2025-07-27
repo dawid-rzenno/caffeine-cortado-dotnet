@@ -4,9 +4,11 @@ namespace cortado.DTOs;
 
 public class DietDetails : Diet
 {
-    public IEnumerable<Meal> Meals { get; set; }
+    public IList<DietMealDetails> Meals { get; set; } =  new List<DietMealDetails>();
+    
+    public DietDetails() {}
 
-    public DietDetails(Diet diet, IEnumerable<Meal> meals)
+    public DietDetails(Diet diet, IList<DietMealDetails> meals)
     {
         Id = diet.Id;
         Name = diet.Name;

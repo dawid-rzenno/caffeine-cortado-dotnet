@@ -1,4 +1,5 @@
-﻿using cortado.Models;
+﻿using cortado.DTOs;
+using cortado.Models;
 using cortado.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,14 +11,14 @@ namespace cortado.Controllers;
 [Route("api/v1/[controller]")]
 public class DietsController(
     IDietsRepository repository,
-    IMealsRepository mealsRepository
+    IDietMealsRepository dietMealsRepository
 ) : ControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] string? term, [FromQuery] bool globalSearch = false)
     {
-        IEnumerable<Diet> diets = string.IsNullOrEmpty(term) 
-            ? await repository.GetAllAsync() 
+        IEnumerable<Diet> diets = string.IsNullOrEmpty(term)
+            ? await repository.GetAllAsync()
             : await repository.GetAllByTermAsync(term, globalSearch);
 
         return Ok(diets);
@@ -54,34 +55,32 @@ public class DietsController(
 
         return success ? NoContent() : NotFound();
     }
-    
+
     [HttpPost("{id}/meals")]
-    public async Task<IActionResult> CreateDietMeal([FromRoute] int id, [FromBody] Meal meal)
+    public async Task<IActionResult> CreateDietMeal([FromRoute] int id, [FromBody] DietMealForm form)
     {
-        await mealsRepository.CreateAsync(meal);
-        
-        Diet? diet = await repository.GetByIdAsync(id);
+        await dietMealsRepository.CreateAsync(
+            new DietMeal
+            {
+                DietId = id,
+                MealId = form.MealId,
+                MealIndex = form.MealIndex,
+                MealDayIndex = form.MealDayIndex
+            }
+        );
 
-        return diet != null ? Ok(diet) : NotFound();
-    }
-    
-    [HttpPut("{id}/meals")]
-    public async Task<IActionResult> UpdateDietMeal([FromRoute] int id, [FromBody] Meal meal)
-    {
-        await mealsRepository.UpdateAsync(meal);
+        DietDetails? dietDetails = await repository.GetByIdAsync(id);
 
-        Diet? diet = await repository.GetByIdAsync(id);
-
-        return diet != null ? Ok(diet) : NotFound();
+        return dietDetails != null ? Ok(dietDetails) : NotFound();
     }
 
-    [HttpDelete("{id}/meals/{mealId}")]
-    public async Task<IActionResult> DeleteDietMeal([FromRoute] int id, [FromRoute] int mealId)
+    [HttpDelete("{id}/meals/{dietMealId}")]
+    public async Task<IActionResult> DeleteDietMeal([FromRoute] int id, [FromRoute] int dietMealId)
     {
-        await mealsRepository.DeleteAsync(mealId);
-        
-        Diet? diet = await repository.GetByIdAsync(id);
+        await dietMealsRepository.DeleteAsync(dietMealId);
 
-        return diet != null ? Ok(diet) : NotFound();
+        DietDetails? dietDetails = await repository.GetByIdAsync(id);
+
+        return dietDetails != null ? Ok(dietDetails) : NotFound();
     }
 }
