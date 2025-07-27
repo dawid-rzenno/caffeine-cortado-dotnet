@@ -5,11 +5,16 @@ namespace cortado.DTOs;
 public class NutrientDetails : Nutrient
 {
     public MassUnit MassUnit { get; set; }
+    public NutrientType Type { get; set; }
+    public NutrientName Name { get; set; }
     
-    public NutrientDetails(Nutrient ingredient, MassUnit massUnit)
+    public NutrientDetails(Nutrient nutrient, NutrientName name, NutrientType type, MassUnit massUnit)
     {
-        Id = ingredient.Id;
-        Name = ingredient.Name;
+        Id = nutrient.Id;
+        Name = name;
+        Type = type;
         MassUnit = massUnit;
+        UserId = nutrient.UserId;
+        Timestamp = nutrient.Timestamp;
     }
 }

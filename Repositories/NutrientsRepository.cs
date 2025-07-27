@@ -14,46 +14,81 @@ public class NutrientsRepository(DapperContext context, ICurrentUserService curr
 {
     public async Task<IEnumerable<Nutrient>> GetAllAsync()
     {
-        var query = "SELECT * FROM Nutrients WHERE UserId = @UserId";
+        var query =
+            """
+            SELECT * 
+            FROM Nutrients 
+            WHERE UserId = @UserId
+            """;
 
         using var connection = context.CreateConnection();
         return await connection.QueryAsync<Nutrient>(query, new { UserId = currentUserService.GetUserId() });
     }
-    
+
     public async Task<IEnumerable<Nutrient>> GetAllByTermAsync(string term, bool globalSearch)
     {
         var query = globalSearch
-            ? "SELECT TOP 10 * FROM Nutrients WHERE Name LIKE @Term"
-            : "SELECT TOP 10 * FROM Nutrients WHERE Name LIKE @Term AND UserId = @UserId";
-        
+            ? """
+              SELECT TOP 10 * 
+              FROM Nutrients AS n 
+                  LEFT JOIN NutrientNames AS nn ON n.NameId = nn.Id 
+              WHERE Name LIKE @Term
+              """
+            : """
+              SELECT TOP 10 n.*, nn.Name
+              FROM Nutrients AS n 
+                  LEFT JOIN NutrientNames AS nn ON n.NameId = nn.Id 
+              WHERE Name LIKE @Term AND n.UserId = @UserId
+              """;
+
         using var connection = context.CreateConnection();
 
-        return await connection.QueryAsync<Nutrient>(query, new { Term = $"%{term}%", UserId = currentUserService.GetUserId() });
+        return await connection.QueryAsync<Nutrient>(query,
+            new { Term = $"%{term}%", UserId = currentUserService.GetUserId() });
     }
 
     public async Task<NutrientDetails?> GetByIdAsync(int id)
     {
-        var nutrientQuery = """
-                        SELECT * FROM Nutrients 
-                        WHERE Id = @Id AND UserId = @UserId
-                    """;
-        
-        using var connection = context.CreateConnection();
-        
-        Nutrient? nutrient = await connection.QueryFirstOrDefaultAsync<Nutrient>(nutrientQuery, new { Id = id, UserId = currentUserService.GetUserId() });
+        var query =
+            """
+                SELECT n.*, NULL AS NutrientName, nn.*, NULL AS NutrientType, nt.*
+                FROM Nutrients AS n
+                    LEFT JOIN NutrientTypes AS nt ON n.TypeId = nt.Id
+                    LEFT JOIN NutrientNames AS nn ON n.NameId = nn.Id
+                WHERE n.Id = @Id AND n.UserId = @UserId
+            """;
 
-        if (nutrient == null) return null;
-		
-        return new NutrientDetails(nutrient, new MassUnit());
+        using var connection = context.CreateConnection();
+
+        IEnumerable<NutrientDetails> nutrientDetails = await connection.QueryAsync<
+            NutrientDetails,
+            NutrientName,
+            NutrientType,
+            NutrientDetails
+        >(
+            query,
+            (nutrientDetails, nutrientName, nutrientType) =>
+            {
+                nutrientDetails.Name = nutrientName;
+                nutrientDetails.Type = nutrientType;
+
+                return nutrientDetails;
+            },
+            new { Id = id, UserId = currentUserService.GetUserId() },
+            splitOn: "NutrientName, NutrientType"
+        );
+
+        return nutrientDetails.SingleOrDefault();
     }
 
     public async Task<Nutrient> CreateAsync(Nutrient nutrient)
     {
-        var createNutrientQuery = """
-                                  INSERT INTO Nutrients (Name, Timestamp, UserId) 
-                                  OUTPUT INSERTED.*
-                                  VALUES (@Name, @Timestamp, @UserId)
-                              """;
+        var createNutrientQuery =
+            """
+                INSERT INTO Nutrients (NameId, TypeId, Amount, Timestamp, UserId) 
+                OUTPUT INSERTED.*
+                VALUES (@NameId, @TypeId, @Amount, @Timestamp, @UserId)
+            """;
 
         nutrient.Timestamp = DateTime.UtcNow;
         nutrient.UserId = currentUserService.GetUserId();
@@ -65,11 +100,12 @@ public class NutrientsRepository(DapperContext context, ICurrentUserService curr
 
     public async Task<Nutrient> UpdateAsync(Nutrient nutrient)
     {
-        var query = """
-                        UPDATE Nutrients SET Name = @Name, Timestamp = @Timestamp, UserId = @UserId
-                        OUTPUT INSERTED.*
-                        WHERE Id = @Id AND UserId = @UserId
-                    """;
+        var query =
+            """
+                UPDATE Nutrients SET NameId = @NameId, TypeId = @TypeId, Timestamp = @Timestamp, UserId = @UserId
+                OUTPUT INSERTED.*
+                WHERE Id = @Id AND UserId = @UserId
+            """;
 
         nutrient.Timestamp = DateTime.UtcNow;
         nutrient.UserId = currentUserService.GetUserId();
@@ -81,10 +117,11 @@ public class NutrientsRepository(DapperContext context, ICurrentUserService curr
 
     public async Task<bool> DeleteAsync(int id)
     {
-        var query = """
-                        DELETE FROM Nutrients 
-                        WHERE Id = @Id
-                    """;
+        var query =
+            """
+                DELETE FROM Nutrients 
+                WHERE Id = @Id
+            """;
 
         using var connection = context.CreateConnection();
         var affectedRows = await connection.ExecuteAsync(query, new { Id = id });

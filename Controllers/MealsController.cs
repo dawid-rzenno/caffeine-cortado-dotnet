@@ -64,16 +64,6 @@ public class MealsController(
 
         return meal != null ? Ok(meal) : NotFound();
     }
-    
-    [HttpPut("{id}/ingredients")]
-    public async Task<IActionResult> UpdateMealIngredient([FromRoute] int id, [FromBody] Ingredient ingredient)
-    {
-        await ingredientsRepository.UpdateAsync(ingredient);
-
-        Meal? meal = await repository.GetByIdAsync(id);
-
-        return meal != null ? Ok(meal) : NotFound();
-    }
 
     [HttpDelete("{id}/ingredients/{ingredientId}")]
     public async Task<IActionResult> DeleteMealIngredient([FromRoute] int id, [FromRoute] int ingredientId)

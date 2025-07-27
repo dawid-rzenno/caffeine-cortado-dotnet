@@ -24,11 +24,15 @@ public class Program
         builder.Services.AddScoped<IMealsRepository, MealsRepository>();
         builder.Services.AddScoped<IIngredientsRepository, IngredientsRepository>();
         builder.Services.AddScoped<INutrientsRepository, NutrientsRepository>();
+        builder.Services.AddScoped<INutrientTypesRepository, NutrientTypesRepository>();
+        builder.Services.AddScoped<INutrientNamesRepository, NutrientNamesRepository>();
         builder.Services.AddScoped<ITrainingsRepository, TrainingsRepository>();
         builder.Services.AddScoped<IExercisesRepository, ExercisesRepository>();
         builder.Services.AddScoped<IMotivationalQuotesRepository, MotivationalQuotesRepository>();
         
         builder.Services.AddScoped<IDietMealsRepository, DietMealsRepository>();
+        builder.Services.AddScoped<IMealIngredientsRepository, MealIngredientsRepository>();
+        builder.Services.AddScoped<IIngredientNutrientsRepository, IngredientNutrientsRepository>();
         
         builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
         

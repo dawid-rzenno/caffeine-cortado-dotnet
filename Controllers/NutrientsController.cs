@@ -9,7 +9,9 @@ namespace cortado.Controllers;
 [ApiController]
 [Route("api/v1/[controller]")]
 public class NutrientsController(
-    INutrientsRepository repository
+    INutrientsRepository repository,
+    INutrientTypesRepository typesRepository,
+    INutrientNamesRepository namesRepository
 ) : ControllerBase
 {
     [HttpGet]
@@ -50,6 +52,38 @@ public class NutrientsController(
     public async Task<IActionResult> Delete([FromRoute] int id)
     {
         var success = await repository.DeleteAsync(id);
+
+        return success ? NoContent() : NotFound();
+    }
+    
+    [HttpPost("types")]
+    public async Task<IActionResult> CreateType([FromBody] NutrientType nutrientType)
+    {
+        nutrientType = await typesRepository.CreateAsync(nutrientType);
+
+        return Ok(nutrientType);
+    }
+
+    [HttpDelete("types/{id}")]
+    public async Task<IActionResult> DeleteType([FromRoute] int id)
+    {
+        var success = await typesRepository.DeleteAsync(id);
+
+        return success ? NoContent() : NotFound();
+    }
+    
+    [HttpPost("names")]
+    public async Task<IActionResult> CreateName([FromBody] NutrientName nutrientName)
+    {
+        nutrientName = await namesRepository.CreateAsync(nutrientName);
+
+        return Ok(nutrientName);
+    }
+
+    [HttpDelete("names/{id}")]
+    public async Task<IActionResult> DeleteName([FromRoute] int id)
+    {
+        var success = await namesRepository.DeleteAsync(id);
 
         return success ? NoContent() : NotFound();
     }

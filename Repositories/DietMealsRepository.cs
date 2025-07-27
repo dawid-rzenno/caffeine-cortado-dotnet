@@ -45,20 +45,9 @@ public class DietMealsRepository(DapperContext context, ICurrentUserService curr
         return await connection.QuerySingleAsync<DietMeal>(createDietMealQuery, dietMeal);
     }
 
-    public async Task<DietMeal> UpdateAsync(DietMeal dietMeal)
+    public Task<DietMeal> UpdateAsync(DietMeal dietMeal)
     {
-        var query = """
-                        UPDATE DietMeals SET MealDayIndex = @MealDayIndex, MealIndex = @MealIndex, UserId = @UserId, Timestamp = @Timestamp
-                        OUTPUT INSERTED.*
-                        WHERE Id = @Id
-                    """;
-        
-        dietMeal.Timestamp = DateTime.UtcNow;
-        dietMeal.UserId = currentUserService.GetUserId();
-
-        using var connection = context.CreateConnection();
-
-        return await connection.QuerySingleAsync<DietMeal>(query, dietMeal);
+        throw new NotImplementedException();
     }
 
     public async Task<bool> DeleteAsync(int id)

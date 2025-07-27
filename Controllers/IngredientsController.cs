@@ -64,16 +64,6 @@ public class IngredientsController(
 
         return ingredient != null ? Ok(ingredient) : NotFound();
     }
-    
-    [HttpPut("{id}/nutrients")]
-    public async Task<IActionResult> UpdateIngredientNutrient([FromRoute] int id, [FromBody] Nutrient nutrient)
-    {
-        await nutrientsRepository.UpdateAsync(nutrient);
-
-        Ingredient? ingredient = await repository.GetByIdAsync(id);
-
-        return ingredient != null ? Ok(ingredient) : NotFound();
-    }
 
     [HttpDelete("{id}/nutrients/{nutrientId}")]
     public async Task<IActionResult> DeleteIngredientNutrient([FromRoute] int id, [FromRoute] int nutrientId)
