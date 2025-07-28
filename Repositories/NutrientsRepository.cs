@@ -31,13 +31,13 @@ public class NutrientsRepository(DapperContext context, ICurrentUserService curr
             ? """
               SELECT TOP 10 * 
               FROM Nutrients AS n 
-                  LEFT JOIN NutrientNames AS nn ON n.NameId = nn.Id 
+                  LEFT JOIN NutrientTypes AS nt ON n.TypeId = nt.Id 
               WHERE Name LIKE @Term
               """
             : """
-              SELECT TOP 10 n.*, nn.Name
+              SELECT TOP 10 n.*, nt.Name
               FROM Nutrients AS n 
-                  LEFT JOIN NutrientNames AS nn ON n.NameId = nn.Id 
+                  LEFT JOIN NutrientTypes AS nt ON n.TypeId = nt.Id 
               WHERE Name LIKE @Term AND n.UserId = @UserId
               """;
 
@@ -51,10 +51,10 @@ public class NutrientsRepository(DapperContext context, ICurrentUserService curr
     {
         var query =
             """
-                SELECT n.*, NULL AS NutrientName, nn.*, NULL AS NutrientType, nt.*
+                SELECT n.*, NULL AS NutrientType, nt.*, NULL AS MassUnit, mu.*
                 FROM Nutrients AS n
                     LEFT JOIN NutrientTypes AS nt ON n.TypeId = nt.Id
-                    LEFT JOIN NutrientNames AS nn ON n.NameId = nn.Id
+                        LEFT JOIN MassUnits AS mu ON nt.MassUnitId = mu.Id
                 WHERE n.Id = @Id AND n.UserId = @UserId
             """;
 
@@ -62,20 +62,20 @@ public class NutrientsRepository(DapperContext context, ICurrentUserService curr
 
         IEnumerable<NutrientDetails> nutrientDetails = await connection.QueryAsync<
             NutrientDetails,
-            NutrientName,
             NutrientType,
+            MassUnit,
             NutrientDetails
         >(
             query,
-            (nutrientDetails, nutrientName, nutrientType) =>
+            (nutrientDetails, nutrientType, massUnit) =>
             {
-                nutrientDetails.Name = nutrientName;
                 nutrientDetails.Type = nutrientType;
+                nutrientDetails.MassUnit = massUnit;
 
                 return nutrientDetails;
             },
             new { Id = id, UserId = currentUserService.GetUserId() },
-            splitOn: "NutrientName, NutrientType"
+            splitOn: "NutrientType, MassUnit"
         );
 
         return nutrientDetails.SingleOrDefault();
@@ -85,9 +85,9 @@ public class NutrientsRepository(DapperContext context, ICurrentUserService curr
     {
         var createNutrientQuery =
             """
-                INSERT INTO Nutrients (NameId, TypeId, Amount, Timestamp, UserId) 
+                INSERT INTO Nutrients (TypeId, Amount, Timestamp, UserId) 
                 OUTPUT INSERTED.*
-                VALUES (@NameId, @TypeId, @Amount, @Timestamp, @UserId)
+                VALUES (@TypeId, @Amount, @Timestamp, @UserId)
             """;
 
         nutrient.Timestamp = DateTime.UtcNow;
@@ -102,7 +102,7 @@ public class NutrientsRepository(DapperContext context, ICurrentUserService curr
     {
         var query =
             """
-                UPDATE Nutrients SET NameId = @NameId, TypeId = @TypeId, Timestamp = @Timestamp, UserId = @UserId
+                UPDATE Nutrients SET TypeId = @TypeId, Amount = @Amount, Timestamp = @Timestamp, UserId = @UserId
                 OUTPUT INSERTED.*
                 WHERE Id = @Id AND UserId = @UserId
             """;

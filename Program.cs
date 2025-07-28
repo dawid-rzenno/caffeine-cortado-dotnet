@@ -25,7 +25,6 @@ public class Program
         builder.Services.AddScoped<IIngredientsRepository, IngredientsRepository>();
         builder.Services.AddScoped<INutrientsRepository, NutrientsRepository>();
         builder.Services.AddScoped<INutrientTypesRepository, NutrientTypesRepository>();
-        builder.Services.AddScoped<INutrientNamesRepository, NutrientNamesRepository>();
         builder.Services.AddScoped<ITrainingsRepository, TrainingsRepository>();
         builder.Services.AddScoped<IExercisesRepository, ExercisesRepository>();
         builder.Services.AddScoped<IMotivationalQuotesRepository, MotivationalQuotesRepository>();
