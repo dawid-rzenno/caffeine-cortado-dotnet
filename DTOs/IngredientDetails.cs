@@ -4,9 +4,13 @@ namespace cortado.DTOs;
 
 public class IngredientDetails : Ingredient
 {
-    public IEnumerable<Nutrient> Nutrients { get; set; }
+    public IList<NutrientDetails> Nutrients { get; set; }
 
-    public IngredientDetails(Ingredient ingredient, IEnumerable<Nutrient> nutrients)
+    public IngredientDetails()
+    {
+    }
+
+    public IngredientDetails(Ingredient ingredient, IList<NutrientDetails> nutrients)
     {
         Id = ingredient.Id;
         Name = ingredient.Name;

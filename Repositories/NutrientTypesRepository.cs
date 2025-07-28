@@ -1,10 +1,11 @@
-﻿using cortado.Models;
+﻿using cortado.DTOs;
+using cortado.Models;
 using cortado.Services;
 using Dapper;
 
 namespace cortado.Repositories;
 
-public interface INutrientTypesRepository : ICrudRepository<NutrientType, NutrientType>
+public interface INutrientTypesRepository : ICrudRepository<NutrientType, NutrientTypeDetails>
 {
     public Task<IEnumerable<NutrientType>> GetAllByTermAsync(string term, bool globalSearch);
 }
@@ -34,29 +35,44 @@ public class NutrientTypesRepository(DapperContext context, ICurrentUserService 
         );
     }
 
-    public async Task<NutrientType?> GetByIdAsync(int id)
+    public async Task<NutrientTypeDetails?> GetByIdAsync(int id)
     {
         var query =
             """
-                SELECT * FROM NutrientTypes 
-                WHERE Id = @Id AND UserId = @UserId
+                SELECT nt.*, NULL as MassUnit, mu.*
+                FROM NutrientTypes AS nt
+                    LEFT JOIN MassUnits AS mu ON nt.MassUnitId = mu.Id
+                WHERE nt.Id = @Id AND nt.UserId = @UserId
             """;
 
         using var connection = context.CreateConnection();
-
-        return await connection.QueryFirstOrDefaultAsync<NutrientType>(
+        
+        IEnumerable<NutrientTypeDetails> nutrientTypeDetails = await connection.QueryAsync<
+            NutrientTypeDetails,
+            MassUnit,
+            NutrientTypeDetails
+        >(
             query,
-            new { Id = id, UserId = currentUserService.GetUserId() }
+            (nutrientTypeDetails, massUnit) =>
+            {
+                nutrientTypeDetails.MassUnit = massUnit;
+
+                return nutrientTypeDetails;
+            },
+            new { Id = id, UserId = currentUserService.GetUserId() },
+            splitOn: "MassUnit"
         );
+
+        return nutrientTypeDetails.FirstOrDefault();
     }
 
     public async Task<NutrientType> CreateAsync(NutrientType nutrientType)
     {
         var query =
             """
-                INSERT INTO NutrientTypes (Name, Timestamp, UserId) 
+                INSERT INTO NutrientTypes (Name, MassUnitId, Timestamp, UserId) 
                 OUTPUT INSERTED.*
-                VALUES (@Name, @Timestamp, @UserId)
+                VALUES (@Name, @MassUnitId, @Timestamp, @UserId)
             """;
 
         nutrientType.Timestamp = DateTime.UtcNow;

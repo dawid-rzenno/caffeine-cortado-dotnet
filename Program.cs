@@ -3,6 +3,8 @@ using cortado.Repositories;
 using cortado.Services;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace cortado;
 
@@ -35,10 +37,18 @@ public class Program
         builder.Services.AddScoped<IIngredientNutrientsRepository, IngredientNutrientsRepository>();
         
         builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
-        
+
         builder.Services.AddControllers(options =>
         {
             options.Conventions.Add(new RouteTokenTransformerConvention(new OutboundParameterTransformer()));
+        }).AddNewtonsoftJson(options =>
+        {
+            options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+            options.SerializerSettings.Formatting = Formatting.Indented;
+            options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+            options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+            options.SerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter());
+            options.SerializerSettings.MaxDepth = 16;
         });
         
         builder.Services.AddHttpContextAccessor();

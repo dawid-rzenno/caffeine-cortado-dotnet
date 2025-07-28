@@ -1,4 +1,5 @@
-﻿using cortado.Models;
+﻿using cortado.DTOs;
+using cortado.Models;
 using cortado.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -25,7 +26,7 @@ public class NutrientTypesController(
     [HttpGet("{id}")]
     public async Task<IActionResult> GetTypeById([FromRoute] int id)
     {
-        NutrientType? nutrientType = await repository.GetByIdAsync(id);
+        NutrientTypeDetails? nutrientType = await repository.GetByIdAsync(id);
 
         return nutrientType != null ? Ok(nutrientType) : NotFound();
     }

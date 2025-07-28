@@ -51,10 +51,9 @@ public class NutrientsRepository(DapperContext context, ICurrentUserService curr
     {
         var query =
             """
-                SELECT n.*, NULL AS NutrientType, nt.*, NULL AS MassUnit, mu.*
+                SELECT n.*, NULL AS NutrientType, nt.*
                 FROM Nutrients AS n
                     LEFT JOIN NutrientTypes AS nt ON n.TypeId = nt.Id
-                        LEFT JOIN MassUnits AS mu ON nt.MassUnitId = mu.Id
                 WHERE n.Id = @Id AND n.UserId = @UserId
             """;
 
@@ -62,15 +61,13 @@ public class NutrientsRepository(DapperContext context, ICurrentUserService curr
 
         IEnumerable<NutrientDetails> nutrientDetails = await connection.QueryAsync<
             NutrientDetails,
-            NutrientType,
-            MassUnit,
+            NutrientTypeDetails,
             NutrientDetails
         >(
             query,
-            (nutrientDetails, nutrientType, massUnit) =>
+            (nutrientDetails, nutrientType) =>
             {
                 nutrientDetails.Type = nutrientType;
-                nutrientDetails.MassUnit = massUnit;
 
                 return nutrientDetails;
             },
