@@ -1,5 +1,4 @@
-﻿using cortado.DTOs;
-using cortado.Models;
+﻿using cortado.Models;
 using cortado.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,10 +8,10 @@ namespace cortado.Controllers;
 [Authorize]
 [ApiController]
 [Route("api/v1/[controller]")]
-public class NutrientTypesController(INutrientTypesRepository repository) : ControllerBase
+public class NutrientsController(INutrientsRepository repository) : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> GetAllTypes(
+    public async Task<IActionResult> GetAll(
         [FromQuery] string? sort,
         [FromQuery] string? sortBy,
         [FromQuery] int? size,
@@ -21,7 +20,7 @@ public class NutrientTypesController(INutrientTypesRepository repository) : Cont
         [FromQuery] bool? globalSearch
     )
     {
-        IEnumerable<NutrientType> nutrients = await repository.GetAllAsync(
+        IEnumerable<Nutrient> nutrients = await repository.GetAllAsync(
             sort ?? "DESC",
             sortBy ?? "Id",
             size ?? 10,
@@ -34,23 +33,31 @@ public class NutrientTypesController(INutrientTypesRepository repository) : Cont
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetTypeById([FromRoute] int id)
+    public async Task<IActionResult> GetById([FromRoute] int id)
     {
-        NutrientTypeDetails? nutrientType = await repository.GetByIdAsync(id);
+        Nutrient? nutrient = await repository.GetByIdAsync(id);
 
-        return nutrientType != null ? Ok(nutrientType) : NotFound();
+        return nutrient != null ? Ok(nutrient) : NotFound();
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateType([FromBody] NutrientType nutrientType)
+    public async Task<IActionResult> Create([FromBody] Nutrient nutrient)
     {
-        nutrientType = await repository.CreateAsync(nutrientType);
+        nutrient = await repository.CreateAsync(nutrient);
 
-        return Ok(nutrientType);
+        return Ok(nutrient);
+    }
+
+    [HttpPut]
+    public async Task<IActionResult> Update([FromBody] Nutrient nutrient)
+    {
+        nutrient = await repository.UpdateAsync(nutrient);
+
+        return Ok(nutrient);
     }
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteType([FromRoute] int id)
+    public async Task<IActionResult> Delete([FromRoute] int id)
     {
         var success = await repository.DeleteAsync(id);
 

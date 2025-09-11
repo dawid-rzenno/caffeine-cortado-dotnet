@@ -1,4 +1,7 @@
-﻿using cortado.Models;
+﻿using System.Data;
+using cortado.Models;
+using cortado.Repositories.Interfaces;
+using cortado.Services;
 using Dapper;
 
 namespace cortado.Repositories;
@@ -8,72 +11,68 @@ public interface IMotivationalQuotesRepository : ICrudRepository<MotivationalQuo
     public Task<MotivationalQuote?> GetRandomAsync();
 }
 
-public class MotivationalQuotesRepository(DapperContext context) : IMotivationalQuotesRepository
+// Todo: option to select user's favourite athletes and quotes based on that choice
+public class MotivationalQuotesRepository(DapperContext context, ICurrentUserService currentUserService)
+    : IMotivationalQuotesRepository
 {
-    public async Task<IEnumerable<MotivationalQuote>> GetAllAsync()
+    public async Task<IEnumerable<MotivationalQuote>> GetAllAsync(
+        string sort,
+        string sortBy,
+        int size,
+        int page,
+        string term,
+        bool globalSearch
+    )
     {
-        var query = "SELECT * FROM MotivationalQuotes";
-
         using var connection = context.CreateConnection();
-        return await connection.QueryAsync<MotivationalQuote>(query);
+        return await connection.QueryAsync<MotivationalQuote>("ufn_GetMotivationalQuotes", new
+            {
+                Size = size,
+                Page = page,
+                Sort = sort,
+                SortBy = sortBy,
+                Term = term,
+                GlobalSearch = globalSearch,
+                UserId = currentUserService.GetUserId()
+            },
+            commandType: CommandType.Text);
     }
-    
+
     public async Task<MotivationalQuote?> GetRandomAsync()
     {
-        var query = """
-                        SELECT TOP 1 * FROM MotivationalQuotes ORDER BY NEWID();
-                    """;
-
         using var connection = context.CreateConnection();
-        return await connection.QueryFirstOrDefaultAsync<MotivationalQuote>(query);
+        return await connection.QueryFirstOrDefaultAsync<MotivationalQuote>("ufn_GetRandomMotivationalQuote",
+            commandType: CommandType.Text);
     }
 
     public async Task<MotivationalQuote?> GetByIdAsync(int id)
     {
-        var query = """
-                        SELECT * FROM MotivationalQuotes 
-                        WHERE Id = @Id
-                    """;
-
         using var connection = context.CreateConnection();
-        return await connection.QueryFirstOrDefaultAsync<MotivationalQuote>(query, new { Id = id });
+        return await connection.QueryFirstOrDefaultAsync<MotivationalQuote>("ufn_GetMotivationalQuote",
+            new { Id = id, UserId = currentUserService.GetUserId() }, commandType: CommandType.Text);
     }
 
     public async Task<MotivationalQuote> CreateAsync(MotivationalQuote motivationalQuote)
     {
-        var createMotivationalQuoteQuery = """
-                                  INSERT INTO MotivationalQuotes (Quote, Author) 
-                                  OUTPUT INSERTED.*
-                                  VALUES (@Quote, @Author)
-                              """;
-
         using var connection = context.CreateConnection();
 
-        return await connection.QuerySingleAsync<MotivationalQuote>(createMotivationalQuoteQuery, motivationalQuote);
+        return await connection.QuerySingleAsync<MotivationalQuote>("usp_CreateMotivationalQuote", motivationalQuote,
+            commandType: CommandType.StoredProcedure);
     }
 
     public async Task<MotivationalQuote> UpdateAsync(MotivationalQuote motivationalQuote)
     {
-        var query = """
-                        UPDATE MotivationalQuotes SET Quote = @Quote, Author = @Author
-                        OUTPUT INSERTED.*
-                        WHERE Id = @Id
-                    """;
-
         using var connection = context.CreateConnection();
 
-        return await connection.QuerySingleAsync<MotivationalQuote>(query, motivationalQuote);
+        return await connection.QuerySingleAsync<MotivationalQuote>("usp_UpdateMotivationalQuote", motivationalQuote,
+            commandType: CommandType.StoredProcedure);
     }
 
     public async Task<bool> DeleteAsync(int id)
     {
-        var query = """
-                        DELETE FROM MotivationalQuotes 
-                        WHERE Id = @Id
-                    """;
-
         using var connection = context.CreateConnection();
-        var affectedRows = await connection.ExecuteAsync(query, new { Id = id });
+        var affectedRows = await connection.ExecuteAsync("usp_DeleteMotivationalQuote", new { Id = id },
+            commandType: CommandType.StoredProcedure);
         return affectedRows > 0;
     }
 }

@@ -25,19 +25,19 @@ public class AuthController(
 
         if (user == null)
         {
-            return NotFound($"User with Username ${form.Username} not found");
+            return NotFound("Invalid credentials.");
         }
 
         if (!passwordService.VerifyPassword(form.Password, user.Password))
         {
             return Unauthorized("Invalid credentials.");
         }
-        
-        UserRole? userRole = await userRolesRepository.GetByIdAsync(user.RoleId);
+
+        UserRole? userRole = await userRolesRepository.GetByIdAsync(user.UserRoleId);
 
         if (userRole == null)
         {
-            throw new Exception($"UserRole with Id {user.RoleId} of User with Id ${user.Id} not found");
+            throw new Exception($"UserRole with Id {user.UserRoleId} of User with Id ${user.Id} not found");
         }
 
         return Ok(jwtTokenService.GenerateToken(user, userRole));
@@ -47,7 +47,7 @@ public class AuthController(
     public async Task<IActionResult> SignUp([FromBody] SignUpForm form)
     {
         var defaultUserRoleId = 1;
-        
+
         var userRole = await userRolesRepository.GetByIdAsync(defaultUserRoleId);
 
         if (userRole == null)
@@ -62,11 +62,13 @@ public class AuthController(
                 {
                     Username = form.Username,
                     Password = form.Password,
-                    RoleId = defaultUserRoleId
+                    UserRoleId = defaultUserRoleId
                 }
             );
 
-            return Ok(new { Id = user.Id });
+            return Ok(
+                new { user.Id }
+            );
         }
         catch (SqlException ex) when (ex.Number is 2627 or 2601)
         {
@@ -79,27 +81,27 @@ public class AuthController(
     public async Task<IActionResult> Get()
     {
         User? user = await usersRepository.GetByIdAsync(currentUserService.GetUserId());
-        
+
         if (user == null)
         {
             return Unauthorized("Invalid credentials.");
         }
-        
-        UserRole? userRole = await userRolesRepository.GetByIdAsync(user.RoleId);
+
+        UserRole? userRole = await userRolesRepository.GetByIdAsync(user.UserRoleId);
 
         if (userRole == null)
         {
-            throw new Exception($"UserRole with Id {user.RoleId} of User with Id ${user.Id} not found");
+            throw new Exception($"UserRole with Id {user.UserRoleId} of User with Id ${user.Id} not found");
         }
-        
+
         return Ok(new UserDetails(user, userRole));
     }
-    
+
     [HttpPut("password")]
     public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordForm form)
     {
         User? user = await usersRepository.GetByIdAsync(form.Id);
-        
+
         if (user == null)
         {
             return NotFound($"User with Id ${form.Id} not found");
@@ -107,12 +109,12 @@ public class AuthController(
 
         user.Password = form.Password;
         user = await usersRepository.UpdatePasswordAsync(user);
-        
-        UserRole? userRole = await userRolesRepository.GetByIdAsync(user.RoleId);
+
+        UserRole? userRole = await userRolesRepository.GetByIdAsync(user.UserRoleId);
 
         if (userRole == null)
         {
-            throw new Exception($"UserRole with Id {user.RoleId} of User with Id ${user.Id} not found");
+            throw new Exception($"UserRole with Id {user.UserRoleId} of User with Id ${user.Id} not found");
         }
 
         return Ok(new UserDetails(user, userRole));

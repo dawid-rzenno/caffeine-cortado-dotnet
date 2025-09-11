@@ -1,5 +1,7 @@
-﻿using cortado.DTOs;
+﻿using System.Data;
+using cortado.DTOs;
 using cortado.Models;
+using cortado.Repositories.Interfaces;
 using cortado.Services;
 using Dapper;
 
@@ -7,72 +9,54 @@ namespace cortado.Repositories;
 
 public interface INutrientsRepository : ICrudRepository<Nutrient, NutrientDetails>
 {
-    public Task<IEnumerable<Nutrient>> GetAllByTermAsync(string term, bool globalSearch);
 }
 
 public class NutrientsRepository(DapperContext context, ICurrentUserService currentUserService) : INutrientsRepository
 {
-    public async Task<IEnumerable<Nutrient>> GetAllAsync()
+    public async Task<IEnumerable<Nutrient>> GetAllAsync(
+        string sort,
+        string sortBy,
+        int size,
+        int page,
+        string term,
+        bool globalSearch
+    )
     {
-        var query =
-            """
-            SELECT * 
-            FROM Nutrients 
-            WHERE UserId = @UserId
-            """;
-
         using var connection = context.CreateConnection();
-        return await connection.QueryAsync<Nutrient>(query, new { UserId = currentUserService.GetUserId() });
-    }
-
-    public async Task<IEnumerable<Nutrient>> GetAllByTermAsync(string term, bool globalSearch)
-    {
-        var query = globalSearch
-            ? """
-              SELECT TOP 10 * 
-              FROM Nutrients AS n 
-                  LEFT JOIN NutrientTypes AS nt ON n.TypeId = nt.Id 
-              WHERE Name LIKE @Term
-              """
-            : """
-              SELECT TOP 10 n.*, nt.Name
-              FROM Nutrients AS n 
-                  LEFT JOIN NutrientTypes AS nt ON n.TypeId = nt.Id 
-              WHERE Name LIKE @Term AND n.UserId = @UserId
-              """;
-
-        using var connection = context.CreateConnection();
-
-        return await connection.QueryAsync<Nutrient>(query,
-            new { Term = $"%{term}%", UserId = currentUserService.GetUserId() });
+        return await connection.QueryAsync<Nutrient>("ufn_GetNutrients",
+            new
+            {
+                Size = size,
+                Page = page,
+                Sort = sort,
+                SortBy = sortBy,
+                Term = term,
+                GlobalSearch = globalSearch,
+                UserId = currentUserService.GetUserId()
+            }, commandType: CommandType.Text);
     }
 
     public async Task<NutrientDetails?> GetByIdAsync(int id)
     {
-        var query =
-            """
-                SELECT n.*, NULL AS NutrientType, nt.*
-                FROM Nutrients AS n
-                    LEFT JOIN NutrientTypes AS nt ON n.TypeId = nt.Id
-                WHERE n.Id = @Id AND n.UserId = @UserId
-            """;
-
         using var connection = context.CreateConnection();
 
         IEnumerable<NutrientDetails> nutrientDetails = await connection.QueryAsync<
             NutrientDetails,
             NutrientTypeDetails,
+            MassUnit,
             NutrientDetails
         >(
-            query,
-            (nutrientDetails, nutrientType) =>
+            "ufn_GetNutrient",
+            (nutrientDetails, nutrientType, massUnit) =>
             {
                 nutrientDetails.Type = nutrientType;
+                nutrientDetails.Type.MassUnit = massUnit;
 
                 return nutrientDetails;
             },
             new { Id = id, UserId = currentUserService.GetUserId() },
-            splitOn: "NutrientType, MassUnit"
+            splitOn: "NutrientTypeId, MassUnitId",
+            commandType: CommandType.Text
         );
 
         return nutrientDetails.SingleOrDefault();
@@ -80,48 +64,31 @@ public class NutrientsRepository(DapperContext context, ICurrentUserService curr
 
     public async Task<Nutrient> CreateAsync(Nutrient nutrient)
     {
-        var createNutrientQuery =
-            """
-                INSERT INTO Nutrients (TypeId, Amount, Timestamp, UserId) 
-                OUTPUT INSERTED.*
-                VALUES (@TypeId, @Amount, @Timestamp, @UserId)
-            """;
-
         nutrient.Timestamp = DateTime.UtcNow;
         nutrient.UserId = currentUserService.GetUserId();
 
         using var connection = context.CreateConnection();
 
-        return await connection.QuerySingleAsync<Nutrient>(createNutrientQuery, nutrient);
+        return await connection.QuerySingleAsync<Nutrient>("usp_CreateNutrient", nutrient,
+            commandType: CommandType.StoredProcedure);
     }
 
     public async Task<Nutrient> UpdateAsync(Nutrient nutrient)
     {
-        var query =
-            """
-                UPDATE Nutrients SET TypeId = @TypeId, Amount = @Amount, Timestamp = @Timestamp, UserId = @UserId
-                OUTPUT INSERTED.*
-                WHERE Id = @Id AND UserId = @UserId
-            """;
-
         nutrient.Timestamp = DateTime.UtcNow;
         nutrient.UserId = currentUserService.GetUserId();
 
         using var connection = context.CreateConnection();
 
-        return await connection.QuerySingleAsync<Nutrient>(query, nutrient);
+        return await connection.QuerySingleAsync<Nutrient>("usp_UpdateNutrient", nutrient,
+            commandType: CommandType.StoredProcedure);
     }
 
     public async Task<bool> DeleteAsync(int id)
     {
-        var query =
-            """
-                DELETE FROM Nutrients 
-                WHERE Id = @Id
-            """;
-
         using var connection = context.CreateConnection();
-        var affectedRows = await connection.ExecuteAsync(query, new { Id = id });
+        var affectedRows = await connection.ExecuteAsync("usp_DeleteNutrient", new { Id = id },
+            commandType: CommandType.StoredProcedure);
         return affectedRows > 0;
     }
 }

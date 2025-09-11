@@ -12,69 +12,67 @@ namespace cortado.Controllers;
 public class UsersController(IUsersRepository repository, IUserRolesRepository userRolesRepository) : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> GetAll([FromQuery] string? term)
+    public async Task<IActionResult> GetAll(
+        [FromQuery] string? sort,
+        [FromQuery] string? sortBy,
+        [FromQuery] int? size,
+        [FromQuery] int? page,
+        [FromQuery] string? term,
+        [FromQuery] bool? globalSearch
+    )
     {
-        IList<UserDetails> userResponses = new List<UserDetails>();
-        
-        IEnumerable<User> users = string.IsNullOrEmpty(term) 
-            ? await repository.GetAllAsync() 
-            : await repository.GetAllByTermAsync(term);
+        IEnumerable<User> users = await repository.GetAllAsync(
+            sort ?? "DESC",
+            sortBy ?? "Id",
+            size ?? 10,
+            page ?? 1,
+            term ?? "",
+            globalSearch ?? false
+        );
 
-        foreach (var user in users)
-        {
-            UserRole? userRole = await userRolesRepository.GetByIdAsync(user.RoleId);
-
-            if (userRole == null)
-            {
-                throw new Exception($"UserRole with Id {user.RoleId} of User with Id ${user.Id} not found");
-            }
-            
-            userResponses.Add(new UserDetails(user, userRole));
-        }
-        
-        return Ok(userResponses);
+        return Ok(users);
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById([FromRoute] int id)
     {
         User? user = await repository.GetByIdAsync(id);
-        
+
         if (user == null)
         {
             return NotFound($"User with Id ${id} not found");
         }
-        
-        UserRole? userRole = await userRolesRepository.GetByIdAsync(user.RoleId);
+
+        UserRole? userRole = await userRolesRepository.GetByIdAsync(user.UserRoleId);
 
         if (userRole == null)
         {
-            throw new Exception($"UserRole with Id {user.RoleId} of User with Id ${user.Id} not found");
+            throw new Exception($"UserRole with Id {user.UserRoleId} of User with Id ${user.Id} not found");
         }
 
         return Ok(new UserDetails(user, userRole));
     }
-    
+
     [HttpPut]
     public async Task<IActionResult> Update([FromBody] UpdateUserForm form)
     {
         User? user = await repository.GetByIdAsync(form.Id);
-        
+
         if (user == null)
         {
             return NotFound($"User with Id ${form.Id} not found");
         }
-        
+
         user.Username = form.Username;
-        user.RoleId = form.RoleId;
-        
-        UserRole? userRole = await userRolesRepository.GetByIdAsync(form.RoleId);
+        user.UserRoleId = form.UserRoleId;
+
+        UserRole? userRole = await userRolesRepository.GetByIdAsync(form.UserRoleId);
 
         if (userRole == null)
         {
-            throw new Exception($"UserRole with Id {form.RoleId} of User with Id ${form.Id} not found");
+            throw new Exception($"UserRole with Id {form.UserRoleId} of User with Id ${form.Id} not found");
         }
-        
+
         user = await repository.UpdateAsync(user);
 
         return Ok(new UserDetails(user, userRole));
@@ -84,7 +82,7 @@ public class UsersController(IUsersRepository repository, IUserRolesRepository u
     public async Task<IActionResult> Delete([FromRoute] int id)
     {
         var success = await repository.DeleteAsync(id);
-        
+
         return success ? NoContent() : NotFound();
     }
 }

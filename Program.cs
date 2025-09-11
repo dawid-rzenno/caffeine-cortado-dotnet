@@ -18,6 +18,8 @@ public class Program
         builder.Services.AddSingleton<PasswordService>();
         builder.Services.AddSingleton<JwtTokenService>();
         
+        builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+        
         builder.Services.AddScoped<IUsersRepository, UsersRepository>();
         builder.Services.AddScoped<IGoalsRepository, GoalsRepository>();
         builder.Services.AddScoped<IMilestonesRepository, MilestonesRepository>();
@@ -35,8 +37,6 @@ public class Program
         builder.Services.AddScoped<IDietMealsRepository, DietMealsRepository>();
         builder.Services.AddScoped<IMealIngredientsRepository, MealIngredientsRepository>();
         builder.Services.AddScoped<IIngredientNutrientsRepository, IngredientNutrientsRepository>();
-        
-        builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
         builder.Services.AddControllers(options =>
         {

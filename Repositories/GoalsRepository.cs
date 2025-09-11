@@ -1,5 +1,7 @@
-﻿using cortado.DTOs;
+﻿using System.Data;
+using cortado.DTOs;
 using cortado.Models;
+using cortado.Repositories.Interfaces;
 using cortado.Services;
 using Dapper;
 
@@ -7,91 +9,92 @@ namespace cortado.Repositories;
 
 public interface IGoalsRepository : ICrudRepository<Goal, GoalDetails>
 {
-    public Task<IEnumerable<Goal>> GetAllByUserIdAsync(int userId);
 }
 
 public class GoalsRepository(DapperContext context, ICurrentUserService currentUserService) : IGoalsRepository
 {
-    public async Task<IEnumerable<Goal>> GetAllAsync()
+    public async Task<IEnumerable<Goal>> GetAllAsync(
+        string sort,
+        string sortBy,
+        int size,
+        int page,
+        string term,
+        bool globalSearch
+    )
     {
-        var query = "SELECT * FROM Goals WHERE UserId = @UserId";
-
         using var connection = context.CreateConnection();
-        return await connection.QueryAsync<Goal>(query, new { UserId = currentUserService.GetUserId() });
-    }
-    
-    public async Task<IEnumerable<Goal>> GetAllByUserIdAsync(int userId)
-    {
-        var query = "SELECT * FROM Goals WHERE UserId LIKE @UserId";
-
-        using var connection = context.CreateConnection();
-        return await connection.QueryAsync<Goal>(query, new { UserId = userId });
+        return await connection.QueryAsync<Goal>("ufn_GetGoals",
+            new
+            {
+                Size = size,
+                Page = page,
+                Sort = sort,
+                SortBy = sortBy,
+                Term = term,
+                GlobalSearch = globalSearch,
+                UserId = currentUserService.GetUserId()
+            },
+            commandType: CommandType.Text
+        );
     }
 
     public async Task<GoalDetails?> GetByIdAsync(int id)
     {
-        var goalQuery = """
-                        SELECT * FROM Goals 
-                        WHERE Id = @Id AND UserId = @UserId
-                    """;
-        
-        var milestonesQuery = """
-                                  SELECT * FROM Milestones 
-                                  WHERE GoalId = @GoalId
-                              """;
-        
         using var connection = context.CreateConnection();
-        
-        Goal? goal = await connection.QueryFirstOrDefaultAsync<Goal>(goalQuery, new { Id = id, UserId = currentUserService.GetUserId() });
 
-        if (goal == null) return null;
-        
-        IEnumerable<Milestone> milestones = await connection.QueryAsync<Milestone>(milestonesQuery, new { GoalId = id });
-		
-        return new GoalDetails(goal, milestones);
+        var goalDetailsDict = new Dictionary<int, GoalDetails>();
+
+        IEnumerable<GoalDetails> goalDetails =
+            await connection.QueryAsync<GoalDetails, Milestone, GoalDetails>(
+                "ufn_GetGoal",
+                (goalDetails, milestone) =>
+                {
+                    if (!goalDetailsDict.TryGetValue(goalDetails.Id, out var currentGoalDetails))
+                    {
+                        currentGoalDetails = goalDetails;
+                        currentGoalDetails.Milestones = new List<Milestone>();
+                        goalDetailsDict.Add(currentGoalDetails.Id, currentGoalDetails);
+                    }
+
+                    currentGoalDetails.Milestones.Add(milestone);
+
+                    return currentGoalDetails;
+                },
+                new { Id = id, UserId = currentUserService.GetUserId() },
+                splitOn: "MilestoneId",
+                commandType: CommandType.Text
+            );
+
+        return goalDetails.FirstOrDefault();
     }
 
     public async Task<Goal> CreateAsync(Goal goal)
     {
-        var createGoalQuery = """
-                                  INSERT INTO Goals (Name, Timestamp, UserId) 
-                                  OUTPUT INSERTED.*
-                                  VALUES (@Name, @Timestamp, @UserId)
-                              """;
-
         goal.Timestamp = DateTime.UtcNow;
         goal.UserId = currentUserService.GetUserId();
 
         using var connection = context.CreateConnection();
 
-        return await connection.QuerySingleAsync<Goal>(createGoalQuery, goal);
+        return await connection.QuerySingleAsync<Goal>("usp_CreateGoal", goal,
+            commandType: CommandType.StoredProcedure);
     }
 
     public async Task<Goal> UpdateAsync(Goal goal)
     {
-        var query = """
-                        UPDATE Goals SET Name = @Name, Timestamp = @Timestamp, UserId = @UserId
-                        OUTPUT INSERTED.*
-                        WHERE Id = @Id AND UserId = @UserId
-                    """;
-
         goal.Timestamp = DateTime.UtcNow;
         goal.UserId = currentUserService.GetUserId();
 
         using var connection = context.CreateConnection();
 
-        return await connection.QuerySingleAsync<Goal>(query, goal);
+        return await connection.QuerySingleAsync<Goal>("usp_UpdateGoal", goal,
+            commandType: CommandType.StoredProcedure);
     }
 
     public async Task<bool> DeleteAsync(int id)
     {
-        var query = """
-                        DELETE FROM Goals 
-                        WHERE Id = @Id
-                    """;
-
         using var connection = context.CreateConnection();
-        var affectedRows = await connection.ExecuteAsync(query, new { Id = id });
+        var affectedRows = await connection.ExecuteAsync("usp_DeleteGoal", new { Id = id },
+            commandType: CommandType.StoredProcedure);
         return affectedRows > 0;
     }
 }

@@ -11,9 +11,23 @@ namespace cortado.Controllers;
 public class UserRolesController(IUserRolesRepository repository) : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll(
+        [FromQuery] string? sort,
+        [FromQuery] string? sortBy,
+        [FromQuery] int? size,
+        [FromQuery] int? page,
+        [FromQuery] string? term,
+        [FromQuery] bool? globalSearch
+    )
     {
-        IEnumerable<UserRole> userRoles = await repository.GetAllAsync();
+        IEnumerable<UserRole> userRoles = await repository.GetAllAsync(
+            sort ?? "DESC",
+            sortBy ?? "Id",
+            size ?? 10,
+            page ?? 1,
+            term ?? "",
+            globalSearch ?? false
+        );
         
         return Ok(userRoles);
     }
