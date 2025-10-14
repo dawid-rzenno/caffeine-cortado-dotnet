@@ -7,15 +7,10 @@ $outputDir = ""  # Git repo path
 $gitBranch = ""                # Branch to commit changes to
 
 # -------------------------
-# Prompt for SQL credentials
-# (Username + Password stored securely in memory)
-# -------------------------
-$credential = Get-Credential -Message "Enter SQL Server credentials"
-
-# -------------------------
 # Ensure output directory exists
 # -------------------------
-if (!(Test-Path $outputDir)) {
+if (!(Test-Path $outputDir))
+{
     New-Item -ItemType Directory -Path $outputDir | Out-Null
 }
 
@@ -37,9 +32,10 @@ ORDER BY o.type, o.name;
 # -------------------------
 # Run SQL with credentials
 # -------------------------
-$results = Invoke-Sqlcmd -ServerInstance $server -Database $database -Query $query -Credential $credential
+$results = Invoke-Sqlcmd -ServerInstance $server -Database $database -Query $query
 
-foreach ($row in $results) {
+foreach ($row in $results)
+{
     $safeName = ($row.ObjectName -replace '[^a-zA-Z0-9_]', '_')
     $fileName = "$safeName.sql"
     $filePath = Join-Path $outputDir $fileName
@@ -47,10 +43,10 @@ foreach ($row in $results) {
     # Add a header for clarity
     $content = @"
 -- =============================================
--- Object: $($row.ObjectName)  ($($row.ObjectType))
--- Generated: $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")
+-- Object: $( $row.ObjectName )  ($( $row.ObjectType ))
+-- Generated: $( Get-Date -Format "yyyy-MM-dd HH:mm:ss" )
 -- =============================================
-$row.ObjectDefinition
+$( $row.ObjectDefinition )
 "@
 
     # Save to file
@@ -62,9 +58,12 @@ $row.ObjectDefinition
 # -------------------------
 Set-Location $outputDir
 git add .
-if (-not (git diff --cached --quiet)) {
-    git commit -m "Automated SP export $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")"
+if (-not (git diff --cached --quiet))
+{
+    git commit -m "Automated SP export $( Get-Date -Format "yyyy-MM-dd HH:mm:ss" )"
     git push origin $gitBranch
-} else {
+}
+else
+{
     Write-Output "No changes detected, nothing to commit."
 }
