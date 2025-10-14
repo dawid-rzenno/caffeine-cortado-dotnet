@@ -14,11 +14,23 @@ public class MealsController(
 ) : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> GetAll([FromQuery] string? term, [FromQuery] bool globalSearch = false)
+    public async Task<IActionResult> GetAll(
+        [FromQuery] string? sort,
+        [FromQuery] string? sortBy,
+        [FromQuery] int? size,
+        [FromQuery] int? page,
+        [FromQuery] string? term,
+        [FromQuery] bool? globalSearch
+    )
     {
-        IEnumerable<Meal> meals = string.IsNullOrEmpty(term) 
-            ? await repository.GetAllAsync() 
-            : await repository.GetAllByTermAsync(term, globalSearch);
+        IEnumerable<Meal> meals = await repository.GetAllAsync(
+            sort ?? "DESC",
+            sortBy ?? "Id",
+            size ?? 10,
+            page ?? 1,
+            term ?? "",
+            globalSearch ?? false
+        );
 
         return Ok(meals);
     }
@@ -54,12 +66,12 @@ public class MealsController(
 
         return success ? NoContent() : NotFound();
     }
-    
+
     [HttpPost("{id}/ingredients")]
     public async Task<IActionResult> CreateMealIngredient([FromRoute] int id, [FromBody] Ingredient ingredient)
     {
         await ingredientsRepository.CreateAsync(ingredient);
-        
+
         Meal? meal = await repository.GetByIdAsync(id);
 
         return meal != null ? Ok(meal) : NotFound();
@@ -69,7 +81,7 @@ public class MealsController(
     public async Task<IActionResult> DeleteMealIngredient([FromRoute] int id, [FromRoute] int ingredientId)
     {
         await ingredientsRepository.DeleteAsync(ingredientId);
-        
+
         Meal? meal = await repository.GetByIdAsync(id);
 
         return meal != null ? Ok(meal) : NotFound();

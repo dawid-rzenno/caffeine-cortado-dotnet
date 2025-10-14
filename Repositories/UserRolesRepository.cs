@@ -1,4 +1,6 @@
-﻿using cortado.Models;
+﻿using System.Data;
+using cortado.Models;
+using cortado.Repositories.Interfaces;
 using Dapper;
 
 namespace cortado.Repositories;
@@ -9,60 +11,53 @@ public interface IUserRolesRepository : ICrudRepository<UserRole, UserRole>
 
 public class UserRolesRepository(DapperContext context) : IUserRolesRepository
 {
-    public async Task<IEnumerable<UserRole>> GetAllAsync()
+    public async Task<IEnumerable<UserRole>> GetAllAsync(
+        string sort,
+        string sortBy,
+        int size,
+        int page,
+        string term,
+        bool globalSearch = false
+    )
     {
-        var query = "SELECT * FROM UserRoles";
-
         using var connection = context.CreateConnection();
-        return await connection.QueryAsync<UserRole>(query);
+        return await connection.QueryAsync<UserRole>("ufn_GetUserRoles", new
+        {
+            Size = size,
+            Page = page,
+            Sort = sort,
+            SortBy = sortBy,
+            Term = term,
+        },  commandType: CommandType.Text);
     }
 
     public async Task<UserRole?> GetByIdAsync(int id)
     {
-        var query = """
-                        SELECT * FROM UserRoles 
-                        WHERE Id = @Id
-                    """;
-
         using var connection = context.CreateConnection();
-        return await connection.QueryFirstOrDefaultAsync<UserRole>(query, new { Id = id });
+        return await connection.QueryFirstOrDefaultAsync<UserRole>("ufn_GetUserRole", new { Id = id }, commandType: CommandType.Text);
     }
 
     public async Task<UserRole> CreateAsync(UserRole userRole)
     {
-        var createUserRoleQuery = """
-                                  INSERT INTO UserRoles (Id, Name) 
-                                  OUTPUT INSERTED.*
-                                  VALUES (@Id, @Name)
-                              """;
-
         using var connection = context.CreateConnection();
 
-        return await connection.QuerySingleAsync<UserRole>(createUserRoleQuery, userRole);
+        return await connection.QuerySingleAsync<UserRole>("usp_CreateUserRole", userRole,
+            commandType: CommandType.StoredProcedure);
     }
 
     public async Task<UserRole> UpdateAsync(UserRole userRole)
     {
-        var query = """
-                        UPDATE UserRoles SET Id = @Id, Name = @Name
-                        OUTPUT INSERTED.*
-                        WHERE Id = @Id
-                    """;
-
         using var connection = context.CreateConnection();
 
-        return await connection.QuerySingleAsync<UserRole>(query, userRole);
+        return await connection.QuerySingleAsync<UserRole>("usp_UpdateUserRole", userRole,
+            commandType: CommandType.StoredProcedure);
     }
 
     public async Task<bool> DeleteAsync(int id)
     {
-        var query = """
-                        DELETE FROM UserRoles 
-                        WHERE Id = @Id
-                    """;
-
         using var connection = context.CreateConnection();
-        var affectedRows = await connection.ExecuteAsync(query, new { Id = id });
+        var affectedRows = await connection.ExecuteAsync("usp_DeleteUserRole", new { Id = id },
+            commandType: CommandType.StoredProcedure);
         return affectedRows > 0;
     }
 }

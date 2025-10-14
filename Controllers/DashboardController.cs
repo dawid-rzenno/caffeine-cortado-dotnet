@@ -9,20 +9,26 @@ namespace cortado.Controllers;
 [ApiController]
 [Route("api/v1/[controller]")]
 public class DashboardController(
-    ICurrentUserService currentUserService,
     IGoalsRepository goalsRepository,
     IMotivationalQuotesRepository motivationalQuotesRepository
     ) : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> SignIn()
+    public async Task<IActionResult> GetDashboardDataAsync()
     {
-        IEnumerable<Goal> goals = await goalsRepository.GetAllByUserIdAsync(currentUserService.GetUserId());
+        IEnumerable<Goal> goals = await goalsRepository.GetAllAsync(
+            "DESC",
+            "Id",
+            10,
+            1,
+            "",
+            false
+        );
 
         MotivationalQuote? motivationalQuote = await motivationalQuotesRepository.GetRandomAsync();
 
         return Ok(
-            new DashboardResponse(motivationalQuote, null, null, goals)
+            new DashboardDetails(motivationalQuote, null, null, goals)
         );
     }
 }

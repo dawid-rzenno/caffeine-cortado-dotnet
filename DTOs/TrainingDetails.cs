@@ -4,9 +4,9 @@ namespace cortado.DTOs;
 
 public class TrainingDetails : Training
 {
-    public IEnumerable<Exercise> Exercises { get; set; }
+    public IList<Exercise> Exercises { get; set; }
 
-    public TrainingDetails(Training training, IEnumerable<Exercise> exercises)
+    public TrainingDetails(Training training, IList<Exercise> exercises)
     {
         Id = training.Id;
         Name = training.Name;

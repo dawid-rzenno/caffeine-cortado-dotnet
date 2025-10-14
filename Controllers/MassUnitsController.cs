@@ -8,16 +8,26 @@ namespace cortado.Controllers;
 [Authorize]
 [ApiController]
 [Route("api/v1/[controller]")]
-public class MassUnitsController(
-    IMassUnitsRepository repository
-) : ControllerBase
+public class MassUnitsController(IMassUnitsRepository repository) : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> GetAll([FromQuery] string? term, [FromQuery] bool globalSearch = false)
+    public async Task<IActionResult> GetAll(
+        [FromQuery] string? sort,
+        [FromQuery] string? sortBy,
+        [FromQuery] int? size,
+        [FromQuery] int? page,
+        [FromQuery] string? term,
+        [FromQuery] bool? globalSearch
+    )
     {
-        IEnumerable<MassUnit> massUnits = string.IsNullOrEmpty(term) 
-            ? await repository.GetAllAsync() 
-            : await repository.GetAllByTermAsync(term, globalSearch);
+        IEnumerable<MassUnit> massUnits = await repository.GetAllAsync(
+            sort ?? "DESC",
+            sortBy ?? "Id",
+            size ?? 10,
+            page ?? 1,
+            term ?? "",
+            globalSearch ?? false
+        );
 
         return Ok(massUnits);
     }

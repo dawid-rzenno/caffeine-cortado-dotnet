@@ -14,9 +14,23 @@ public class GoalsController(
 ) : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll(
+        [FromQuery] string? sort,
+        [FromQuery] string? sortBy,
+        [FromQuery] int? size,
+        [FromQuery] int? page,
+        [FromQuery] string? term,
+        [FromQuery] bool? globalSearch
+    )
     {
-        IEnumerable<Goal> goals = await repository.GetAllAsync();
+        IEnumerable<Goal> goals = await repository.GetAllAsync(
+            sort ?? "DESC",
+            sortBy ?? "Id",
+            size ?? 10,
+            page ?? 1,
+            term ?? "",
+            globalSearch ?? false
+        );
 
         return Ok(goals);
     }

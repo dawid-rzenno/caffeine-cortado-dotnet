@@ -14,13 +14,25 @@ public class IngredientsController(
 ) : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> GetAll([FromQuery] string? term, [FromQuery] bool globalSearch = false)
+    public async Task<IActionResult> GetAll(
+        [FromQuery] string? sort,
+        [FromQuery] string? sortBy,
+        [FromQuery] int? size,
+        [FromQuery] int? page,
+        [FromQuery] string? term,
+        [FromQuery] bool? globalSearch
+    )
     {
-        IEnumerable<Ingredient> ingredients = string.IsNullOrEmpty(term) 
-            ? await repository.GetAllAsync() 
-            : await repository.GetAllByTermAsync(term, globalSearch);
-
-        return Ok(ingredients);
+        return Ok(
+            await repository.GetAllAsync(
+                sort ?? "DESC",
+                sortBy ?? "Id",
+                size ?? 10,
+                page ?? 1,
+                term ?? "",
+                globalSearch ?? false
+            )
+        );
     }
 
     [HttpGet("{id}")]
@@ -54,12 +66,12 @@ public class IngredientsController(
 
         return success ? NoContent() : NotFound();
     }
-    
+
     [HttpPost("{id}/nutrients")]
     public async Task<IActionResult> CreateIngredientNutrient([FromRoute] int id, [FromBody] Nutrient nutrient)
     {
         await nutrientsRepository.CreateAsync(nutrient);
-        
+
         Ingredient? ingredient = await repository.GetByIdAsync(id);
 
         return ingredient != null ? Ok(ingredient) : NotFound();
@@ -69,7 +81,7 @@ public class IngredientsController(
     public async Task<IActionResult> DeleteIngredientNutrient([FromRoute] int id, [FromRoute] int nutrientId)
     {
         await nutrientsRepository.DeleteAsync(nutrientId);
-        
+
         Ingredient? ingredient = await repository.GetByIdAsync(id);
 
         return ingredient != null ? Ok(ingredient) : NotFound();

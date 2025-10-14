@@ -15,11 +15,23 @@ public class DietsController(
 ) : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> GetAll([FromQuery] string? term, [FromQuery] bool globalSearch = false)
+    public async Task<IActionResult> GetAll(
+        [FromQuery] string? sort,
+        [FromQuery] string? sortBy,
+        [FromQuery] int? size,
+        [FromQuery] int? page,
+        [FromQuery] string? term,
+        [FromQuery] bool? globalSearch
+    )
     {
-        IEnumerable<Diet> diets = string.IsNullOrEmpty(term)
-            ? await repository.GetAllAsync()
-            : await repository.GetAllByTermAsync(term, globalSearch);
+        IEnumerable<Diet> diets = await repository.GetAllAsync(
+            sort ?? "DESC",
+            sortBy ?? "Id",
+            size ?? 10,
+            page ?? 1,
+            term ?? "",
+            globalSearch ?? false
+        );
 
         return Ok(diets);
     }

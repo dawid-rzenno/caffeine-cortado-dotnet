@@ -1,4 +1,6 @@
-﻿using cortado.Models;
+﻿using System.Data;
+using cortado.Models;
+using cortado.Repositories.Interfaces;
 using cortado.Services;
 using Dapper;
 
@@ -6,117 +8,89 @@ namespace cortado.Repositories;
 
 public interface IUsersRepository : ICrudRepository<User, User>
 {
-    public Task<IEnumerable<User>> GetAllByTermAsync(string term);
     public Task<User?> GetByUsernameAsync(string username);
     public Task<User> UpdatePasswordAsync(User user);
 }
 
-public class UsersRepository(DapperContext context, PasswordService passwordService) : IUsersRepository
+public class UsersRepository(
+    DapperContext context,
+    PasswordService passwordService,
+    ICurrentUserService currentUserService) : IUsersRepository
 {
-    public async Task<IEnumerable<User>> GetAllAsync()
+    public async Task<IEnumerable<User>> GetAllAsync(
+        string sort,
+        string sortBy,
+        int size,
+        int page,
+        string term
+    )
     {
-        var query = "SELECT * FROM Users";
-
         using var connection = context.CreateConnection();
-        return await connection.QueryAsync<User>(query);
+        return await connection.QueryAsync<User>("ufn_GetUsers", new
+        {
+            Size = size,
+            Page = page,
+            Sort = sort,
+            SortBy = sortBy,
+            Term = term
+        }, commandType: CommandType.Text);
     }
-
-    public async Task<IEnumerable<User>> GetAllByTermAsync(string term)
+    
+    public async Task<User?> GetByUsernameAsync(string username)
     {
-        var query = "SELECT * FROM Users WHERE Username LIKE @term";
-
         using var connection = context.CreateConnection();
-        return await connection.QueryAsync<User>(query, new { term });
+        return await connection.QueryFirstOrDefaultAsync<User>("ufn_GetUser", new { Username = username },
+            commandType: CommandType.Text);
     }
 
     public async Task<User?> GetByIdAsync(int id)
     {
-        var query = """
-                        SELECT * FROM Users 
-                        WHERE Id = @Id
-                    """;
-
         using var connection = context.CreateConnection();
-        return await connection.QueryFirstOrDefaultAsync<User>(query, new { Id = id });
-    }
-
-    public async Task<User?> GetByUsernameAsync(string username)
-    {
-        var query = """
-                        SELECT * FROM Users 
-                        WHERE Username = @Username
-                    """;
-
-        using var connection = context.CreateConnection();
-        return await connection.QueryFirstOrDefaultAsync<User>(query, new { Username = username });
+        return await connection.QueryFirstOrDefaultAsync<User>("ufn_GetUser", new { Id = id },
+            commandType: CommandType.Text);
     }
 
     public async Task<User> CreateAsync(User user)
     {
-        var createUserQuery = """
-                                  INSERT INTO Users (Username, Password, RoleId, Timestamp, UserId) 
-                                  OUTPUT INSERTED.*
-                                  VALUES (@Username, @Password, @RoleId, @Timestamp, @UserId); 
-                                  SELECT CAST(SCOPE_IDENTITY() as int)
-                              """;
-
         user.Timestamp = DateTime.UtcNow;
         user.Password = passwordService.HashPassword(user.Password);
 
         using var connection = context.CreateConnection();
 
-        var createdUserId = await connection.QuerySingleAsync<int>(createUserQuery, user);
+        int createdUserId =
+            await connection.QuerySingleAsync<int>("usp_CreateUser", user, commandType: CommandType.StoredProcedure);
 
-        var updateUserIdQuery = """
-                                    UPDATE Users SET UserId = @UserId
-                                    OUTPUT INSERTED.*
-                                    WHERE Id = @Id
-                                """;
-
-        return await connection.QuerySingleAsync<User>(updateUserIdQuery,
-            new { Id = createdUserId, UserId = createdUserId });
+        return await connection.QuerySingleAsync<User>("usp_UpdateUserUserId",
+            new { Id = createdUserId, UserId = createdUserId }, commandType: CommandType.StoredProcedure);
     }
 
     public async Task<User> UpdateAsync(User user)
     {
-        var query = """
-                        UPDATE Users SET Username = @Username, RoleId = @RoleId, Timestamp = @Timestamp, UserId = @UserId
-                        OUTPUT INSERTED.*
-                        WHERE Id = @Id
-                    """;
-
+        user.UserId = currentUserService.GetUserId();
         user.Timestamp = DateTime.UtcNow;
 
         using var connection = context.CreateConnection();
 
-        return await connection.QuerySingleAsync<User>(query, user);
+        return await connection.QuerySingleAsync<User>("usp_UpdateUser", user,
+            commandType: CommandType.StoredProcedure);
     }
 
     public async Task<User> UpdatePasswordAsync(User user)
     {
-        var query = """
-                        UPDATE Users SET Password = @Password, Timestamp = @Timestamp, UserId = @UserId
-                        OUTPUT INSERTED.*
-                        WHERE Id = @Id
-                    """;
-
         user.Timestamp = DateTime.UtcNow;
         user.Password = passwordService.HashPassword(user.Password);
 
         using var connection = context.CreateConnection();
 
-        return await connection.QuerySingleAsync<User>(query, user);
+        return await connection.QuerySingleAsync<User>("usp_UpdateUserPassword", user,
+            commandType: CommandType.StoredProcedure);
     }
 
     public async Task<bool> DeleteAsync(int id)
     {
-        var query = """
-                        DELETE FROM Users 
-                        WHERE Id = @Id
-                    """;
-
         using var connection = context.CreateConnection();
-        var affectedRows = await connection.ExecuteAsync(query, new { Id = id });
+        var affectedRows = await connection.ExecuteAsync("usp_DeleteUser", new { Id = id },
+            commandType: CommandType.StoredProcedure);
         return affectedRows > 0;
     }
 }

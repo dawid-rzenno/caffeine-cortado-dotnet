@@ -4,9 +4,9 @@ namespace cortado.DTOs;
 
 public class GoalDetails : Goal
 {
-    public IEnumerable<Milestone> Milestones { get; set; }
+    public IList<Milestone> Milestones { get; set; }
 
-    public GoalDetails(Goal goal, IEnumerable<Milestone> milestones)
+    public GoalDetails(Goal goal, IList<Milestone> milestones)
     {
         Id = goal.Id;
         Name = goal.Name;

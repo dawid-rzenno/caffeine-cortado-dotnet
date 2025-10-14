@@ -1,4 +1,6 @@
-﻿using cortado.Models;
+﻿using System.Data;
+using cortado.Models;
+using cortado.Repositories.Interfaces;
 using cortado.Services;
 using Dapper;
 
@@ -10,66 +12,63 @@ public interface IMilestonesRepository : ICrudRepository<Milestone, Milestone>
 
 public class MilestonesRepository(DapperContext context, ICurrentUserService currentUserService) : IMilestonesRepository
 {
-    public async Task<IEnumerable<Milestone>> GetAllAsync()
+    public async Task<IEnumerable<Milestone>> GetAllAsync(
+        string sort,
+        string sortBy,
+        int size,
+        int page,
+        string term,
+        bool globalSearch
+    )
     {
-        var query = "SELECT * FROM Milestones WHERE UserId = @UserId";
-
         using var connection = context.CreateConnection();
-        return await connection.QueryAsync<Milestone>(query);
+        return await connection.QueryAsync<Milestone>("ufn_GetMilestone", new
+            {
+                Size = size,
+                Page = page,
+                Sort = sort,
+                SortBy = sortBy,
+                Term = term,
+                GlobalSearch = globalSearch,
+                UserId = currentUserService.GetUserId()
+            },
+            commandType: CommandType.Text);
     }
 
     public async Task<Milestone?> GetByIdAsync(int id)
     {
-        var query = """
-                        SELECT * FROM Milestones 
-                        WHERE Id = @Id AND UserId = @UserId
-                    """;
-
         using var connection = context.CreateConnection();
-        return await connection.QueryFirstOrDefaultAsync<Milestone>(query, new { Id = id });
+        return await connection.QueryFirstOrDefaultAsync<Milestone>("ufn_GetMilestone", new { Id = id },
+            commandType: CommandType.Text);
     }
 
     public async Task<Milestone> CreateAsync(Milestone milestone)
     {
-        var createMilestoneQuery = """
-                                  INSERT INTO Milestones (Name, GoalId, Timestamp, UserId) 
-                                  OUTPUT INSERTED.*
-                                  VALUES (@Name, @GoalId, @Timestamp, @UserId)
-                              """;
-
         milestone.Timestamp = DateTime.UtcNow;
         milestone.UserId = currentUserService.GetUserId();
 
         using var connection = context.CreateConnection();
 
-        return await connection.QuerySingleAsync<Milestone>(createMilestoneQuery, milestone);
+        return await connection.QuerySingleAsync<Milestone>("usp_CreateMilestone", milestone,
+            commandType: CommandType.StoredProcedure);
     }
 
     public async Task<Milestone> UpdateAsync(Milestone milestone)
     {
-        var query = """
-                        UPDATE Milestones SET Name = @Name, GoalId = @GoalId, Timestamp = @Timestamp, UserId = @UserId
-                        OUTPUT INSERTED.*
-                        WHERE Id = @Id AND UserId = @UserId
-                    """;
-
         milestone.Timestamp = DateTime.UtcNow;
         milestone.UserId = currentUserService.GetUserId();
 
         using var connection = context.CreateConnection();
 
-        return await connection.QuerySingleAsync<Milestone>(query, milestone);
+        return await connection.QuerySingleAsync<Milestone>("usp_UpdateMilestone", milestone,
+            commandType: CommandType.StoredProcedure);
     }
 
     public async Task<bool> DeleteAsync(int id)
     {
-        var query = """
-                        DELETE FROM Milestones 
-                        WHERE Id = @Id
-                    """;
-
         using var connection = context.CreateConnection();
-        var affectedRows = await connection.ExecuteAsync(query, new { Id = id });
+        var affectedRows = await connection.ExecuteAsync("usp_DeleteMilestone", new { Id = id },
+            commandType: CommandType.StoredProcedure);
         return affectedRows > 0;
     }
 }
