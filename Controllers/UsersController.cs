@@ -17,8 +17,7 @@ public class UsersController(IUsersRepository repository, IUserRolesRepository u
         [FromQuery] string? sortBy,
         [FromQuery] int? size,
         [FromQuery] int? page,
-        [FromQuery] string? term,
-        [FromQuery] bool? globalSearch
+        [FromQuery] string? term
     )
     {
         IEnumerable<User> users = await repository.GetAllAsync(
@@ -26,8 +25,7 @@ public class UsersController(IUsersRepository repository, IUserRolesRepository u
             sortBy ?? "Id",
             size ?? 10,
             page ?? 1,
-            term ?? "",
-            globalSearch ?? false
+            term ?? ""
         );
 
         return Ok(users);

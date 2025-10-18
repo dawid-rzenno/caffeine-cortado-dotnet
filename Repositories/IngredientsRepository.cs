@@ -25,7 +25,7 @@ public class IngredientsRepository(DapperContext context, ICurrentUserService cu
     {
         using var connection = context.CreateConnection();
         return await connection.QueryAsync<Ingredient>(
-            "ufn_GetIngredients",
+            "SELECT * FROM ufn_GetIngredients(@UserId, @GlobalSearch, @Term, @Page, @Size, @SortBy, @Sort)",
             new
             {
                 Size = size,
@@ -35,15 +35,14 @@ public class IngredientsRepository(DapperContext context, ICurrentUserService cu
                 Term = term,
                 GlobalSearch = globalSearch,
                 UserId = currentUserService.GetUserId()
-            },
-            commandType: CommandType.Text
+            }
         );
     }
 
     public async Task<IngredientDetails?> GetByIdAsync(int id)
     {
         using var connection = context.CreateConnection();
-        
+
         var ingredientDetailsDict = new Dictionary<int, IngredientDetails>();
 
         IEnumerable<IngredientDetails> ingredientDetails = await connection.QueryAsync<
@@ -54,7 +53,7 @@ public class IngredientsRepository(DapperContext context, ICurrentUserService cu
             MassUnit,
             IngredientDetails
         >(
-            "ufn_GetIngredient",
+            "SELECT * FROM ufn_GetIngredient(@Id, @UserId)",
             (nutrientDetails, _, nutrient, nutrientType, massUnit) =>
             {
                 if (!ingredientDetailsDict.TryGetValue(nutrientDetails.Id, out var currentIngredient))
@@ -71,8 +70,7 @@ public class IngredientsRepository(DapperContext context, ICurrentUserService cu
                 return currentIngredient;
             },
             new { Id = id, UserId = currentUserService.GetUserId() },
-            splitOn: "IngredientNutrientId, NutrientId, NutrientTypeId, MassUnitId",
-            commandType: CommandType.Text
+            splitOn: "IngredientNutrientId, NutrientId, NutrientTypeId, MassUnitId"
         );
 
         return ingredientDetails.FirstOrDefault();

@@ -23,7 +23,8 @@ public class GoalsRepository(DapperContext context, ICurrentUserService currentU
     )
     {
         using var connection = context.CreateConnection();
-        return await connection.QueryAsync<Goal>("ufn_GetGoals",
+        return await connection.QueryAsync<Goal>(
+            "SELECT * FROM ufn_GetGoals(@UserId, @GlobalSearch, @Term, @Page, @Size, @SortBy, @Sort)",
             new
             {
                 Size = size,
@@ -33,8 +34,7 @@ public class GoalsRepository(DapperContext context, ICurrentUserService currentU
                 Term = term,
                 GlobalSearch = globalSearch,
                 UserId = currentUserService.GetUserId()
-            },
-            commandType: CommandType.Text
+            }
         );
     }
 
@@ -46,7 +46,7 @@ public class GoalsRepository(DapperContext context, ICurrentUserService currentU
 
         IEnumerable<GoalDetails> goalDetails =
             await connection.QueryAsync<GoalDetails, Milestone, GoalDetails>(
-                "ufn_GetGoal",
+                "SELECT * FROM ufn_GetGoal(@Id, @UserId)",
                 (goalDetails, milestone) =>
                 {
                     if (!goalDetailsDict.TryGetValue(goalDetails.Id, out var currentGoalDetails))

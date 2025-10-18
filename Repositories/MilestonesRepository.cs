@@ -22,7 +22,9 @@ public class MilestonesRepository(DapperContext context, ICurrentUserService cur
     )
     {
         using var connection = context.CreateConnection();
-        return await connection.QueryAsync<Milestone>("ufn_GetMilestone", new
+        return await connection.QueryAsync<Milestone>(
+            "SELECT * FROM ufn_GetMilestones(@UserId, @GlobalSearch, @Term, @Page, @Size, @SortBy, @Sort)",
+            new
             {
                 Size = size,
                 Page = page,
@@ -31,15 +33,17 @@ public class MilestonesRepository(DapperContext context, ICurrentUserService cur
                 Term = term,
                 GlobalSearch = globalSearch,
                 UserId = currentUserService.GetUserId()
-            },
-            commandType: CommandType.Text);
+            }
+        );
     }
 
     public async Task<Milestone?> GetByIdAsync(int id)
     {
         using var connection = context.CreateConnection();
-        return await connection.QueryFirstOrDefaultAsync<Milestone>("ufn_GetMilestone", new { Id = id },
-            commandType: CommandType.Text);
+        return await connection.QueryFirstOrDefaultAsync<Milestone>(
+            "SELECT * FROM ufn_GetMilestone(@Id, @UserId)",
+            new { Id = id }
+        );
     }
 
     public async Task<Milestone> CreateAsync(Milestone milestone)

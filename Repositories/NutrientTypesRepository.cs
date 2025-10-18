@@ -24,7 +24,8 @@ public class NutrientTypesRepository(DapperContext context, ICurrentUserService 
     )
     {
         using var connection = context.CreateConnection();
-        return await connection.QueryAsync<NutrientType>("ufn_GetNutrientTypes",
+        return await connection.QueryAsync<NutrientType>(
+            "SELECT * FROM ufn_GetNutrientTypes(@UserId, @GlobalSearch, @Term, @Page, @Size, @SortBy, @Sort)",
             new
             {
                 Size = size,
@@ -34,8 +35,8 @@ public class NutrientTypesRepository(DapperContext context, ICurrentUserService 
                 Term = term,
                 GlobalSearch = globalSearch,
                 UserId = currentUserService.GetUserId()
-            },
-            commandType: CommandType.Text);
+            }
+        );
     }
 
     public async Task<NutrientTypeDetails?> GetByIdAsync(int id)
@@ -47,7 +48,7 @@ public class NutrientTypesRepository(DapperContext context, ICurrentUserService 
             MassUnit,
             NutrientTypeDetails
         >(
-            "ufn_GetNutrientType",
+            "SELECT * FROM ufn_GetNutrientType(@Id, @UserId)",
             (nutrientTypeDetails, massUnit) =>
             {
                 nutrientTypeDetails.MassUnit = massUnit;
@@ -55,8 +56,7 @@ public class NutrientTypesRepository(DapperContext context, ICurrentUserService 
                 return nutrientTypeDetails;
             },
             new { Id = id, UserId = currentUserService.GetUserId() },
-            splitOn: "MassUnitId",
-            commandType: CommandType.Text
+            splitOn: "MassUnitId"
         );
 
         return nutrientTypeDetails.FirstOrDefault();

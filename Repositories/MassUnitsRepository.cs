@@ -22,23 +22,26 @@ public class MassUnitsRepository(DapperContext context, ICurrentUserService curr
     )
     {
         using var connection = context.CreateConnection();
-        return await connection.QueryAsync<MassUnit>("ufn_GetMassUnits", new
-        {
-            Size = size,
-            Page = page,
-            Sort = sort,
-            SortBy = sortBy,
-            Term = term,
-            GlobalSearch = globalSearch,
-            UserId = currentUserService.GetUserId()
-        }, commandType: CommandType.Text);
+        return await connection.QueryAsync<MassUnit>(
+            "SELECT * FROM ufn_GetMassUnits(@UserId, @GlobalSearch, @Term, @Page, @Size, @SortBy, @Sort)",
+            new
+            {
+                Size = size,
+                Page = page,
+                Sort = sort,
+                SortBy = sortBy,
+                Term = term,
+                GlobalSearch = globalSearch,
+                UserId = currentUserService.GetUserId()
+            }
+        );
     }
 
     public async Task<MassUnit?> GetByIdAsync(int id)
     {
         using var connection = context.CreateConnection();
 
-        return await connection.QueryFirstOrDefaultAsync<MassUnit>("ufn_GetMassUnit",
+        return await connection.QueryFirstOrDefaultAsync<MassUnit>("SELECT * FROM ufn_GetMassUnit(@Id, @UserId)",
             new { Id = id, UserId = currentUserService.GetUserId() });
     }
 
@@ -49,24 +52,26 @@ public class MassUnitsRepository(DapperContext context, ICurrentUserService curr
 
         using var connection = context.CreateConnection();
 
-        return await connection.QuerySingleAsync<MassUnit>("usp_CreateMassUnit", massUnit, commandType: CommandType.StoredProcedure);
+        return await connection.QuerySingleAsync<MassUnit>("usp_CreateMassUnit", massUnit,
+            commandType: CommandType.StoredProcedure);
     }
 
     public async Task<MassUnit> UpdateAsync(MassUnit massUnit)
     {
-
         massUnit.Timestamp = DateTime.UtcNow;
         massUnit.UserId = currentUserService.GetUserId();
 
         using var connection = context.CreateConnection();
 
-        return await connection.QuerySingleAsync<MassUnit>("usp_UpdateMassUnit", massUnit, commandType: CommandType.StoredProcedure);
+        return await connection.QuerySingleAsync<MassUnit>("usp_UpdateMassUnit", massUnit,
+            commandType: CommandType.StoredProcedure);
     }
 
     public async Task<bool> DeleteAsync(int id)
     {
         using var connection = context.CreateConnection();
-        var affectedRows = await connection.ExecuteAsync("usp_DeleteMassUnit", new { Id = id }, commandType: CommandType.StoredProcedure);
+        var affectedRows = await connection.ExecuteAsync("usp_DeleteMassUnit", new { Id = id },
+            commandType: CommandType.StoredProcedure);
         return affectedRows > 0;
     }
 }

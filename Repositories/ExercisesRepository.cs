@@ -23,24 +23,29 @@ public class ExercisesRepository(DapperContext context, ICurrentUserService curr
     )
     {
         using var connection = context.CreateConnection();
-        return await connection.QueryAsync<Exercise>("ufn_GetExercises", new
-        {
-            Size = size,
-            Page = page,
-            Sort = sort,
-            SortBy = sortBy,
-            Term = term,
-            GlobalSearch = globalSearch,
-            UserId = currentUserService.GetUserId()
-        }, commandType: CommandType.Text);
+        return await connection.QueryAsync<Exercise>(
+            "SELECT * FROM ufn_GetExercises(@UserId, @GlobalSearch, @Term, @Page, @Size, @SortBy, @Sort)",
+            new
+            {
+                Size = size,
+                Page = page,
+                Sort = sort,
+                SortBy = sortBy,
+                Term = term,
+                GlobalSearch = globalSearch,
+                UserId = currentUserService.GetUserId()
+            }
+        );
     }
 
     public async Task<ExerciseDetails?> GetByIdAsync(int id)
     {
         using var connection = context.CreateConnection();
 
-        Exercise? exercise = await connection.QueryFirstOrDefaultAsync<Exercise>("ufn_GetExercise",
-            new { Id = id, UserId = currentUserService.GetUserId() }, commandType: CommandType.Text);
+        Exercise? exercise = await connection.QueryFirstOrDefaultAsync<Exercise>(
+            "SELECT * FROM ufn_GetExercise(@Id, @UserId)",
+            new { Id = id, UserId = currentUserService.GetUserId() }
+        );
 
         if (exercise == null) return null;
 

@@ -22,7 +22,8 @@ public class MealsRepository(DapperContext context, ICurrentUserService currentU
         bool globalSearch)
     {
         using var connection = context.CreateConnection();
-        return await connection.QueryAsync<Meal>("ufn_GetMeals", new
+        return await connection.QueryAsync<Meal>(
+            "SELECT * FROM ufn_GetMeals(@UserId, @GlobalSearch, @Term, @Page, @Size, @SortBy, @Sort)", new
             {
                 Size = size,
                 Page = page,
@@ -31,17 +32,18 @@ public class MealsRepository(DapperContext context, ICurrentUserService currentU
                 Term = term,
                 GlobalSearch = globalSearch,
                 UserId = currentUserService.GetUserId()
-            },
-            commandType: CommandType.Text);
+            }
+        );
     }
 
     public async Task<MealDetails?> GetByIdAsync(int id)
     {
         using var connection = context.CreateConnection();
 
-        Meal? meal =
-            await connection.QueryFirstOrDefaultAsync<Meal>("ufn_GetMeal",
-                new { Id = id, UserId = currentUserService.GetUserId() }, commandType: CommandType.Text);
+        Meal? meal = await connection.QueryFirstOrDefaultAsync<Meal>(
+            "SELECT * FROM ufn_GetMeal(@Id, @UserId)",
+            new { Id = id, UserId = currentUserService.GetUserId() }
+        );
 
         if (meal == null) return null;
 

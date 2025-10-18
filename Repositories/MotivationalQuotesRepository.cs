@@ -25,7 +25,9 @@ public class MotivationalQuotesRepository(DapperContext context, ICurrentUserSer
     )
     {
         using var connection = context.CreateConnection();
-        return await connection.QueryAsync<MotivationalQuote>("ufn_GetMotivationalQuotes", new
+        return await connection.QueryAsync<MotivationalQuote>(
+            "SELECT * FROM ufn_GetMotivationalQuotes(@UserId, @GlobalSearch, @Term, @Page, @Size, @SortBy, @Sort)",
+            new
             {
                 Size = size,
                 Page = page,
@@ -34,22 +36,25 @@ public class MotivationalQuotesRepository(DapperContext context, ICurrentUserSer
                 Term = term,
                 GlobalSearch = globalSearch,
                 UserId = currentUserService.GetUserId()
-            },
-            commandType: CommandType.Text);
+            }
+        );
     }
 
     public async Task<MotivationalQuote?> GetRandomAsync()
     {
         using var connection = context.CreateConnection();
-        return await connection.QueryFirstOrDefaultAsync<MotivationalQuote>("ufn_GetRandomMotivationalQuote",
-            commandType: CommandType.Text);
+        return await connection.QueryFirstOrDefaultAsync<MotivationalQuote>(
+            "SELECT * FROM ufn_GetRandomMotivationalQuote()"
+        );
     }
 
     public async Task<MotivationalQuote?> GetByIdAsync(int id)
     {
         using var connection = context.CreateConnection();
-        return await connection.QueryFirstOrDefaultAsync<MotivationalQuote>("ufn_GetMotivationalQuote",
-            new { Id = id, UserId = currentUserService.GetUserId() }, commandType: CommandType.Text);
+        return await connection.QueryFirstOrDefaultAsync<MotivationalQuote>(
+            "SELECT * FROM ufn_GetMotivationalQuote(@Id, @UserId)",
+            new { Id = id, UserId = currentUserService.GetUserId() }
+        );
     }
 
     public async Task<MotivationalQuote> CreateAsync(MotivationalQuote motivationalQuote)

@@ -24,7 +24,7 @@ public class DietsRepository(DapperContext context, ICurrentUserService currentU
     {
         using var connection = context.CreateConnection();
         return await connection.QueryAsync<Diet>(
-            "ufn_GetDiets",
+            "SELECT * FROM ufn_GetDiets(@UserId, @GlobalSearch, @Term, @Page, @Size, @SortBy, @Sort)",
             new
             {
                 Size = size,
@@ -34,8 +34,7 @@ public class DietsRepository(DapperContext context, ICurrentUserService currentU
                 Term = term,
                 GlobalSearch = globalSearch,
                 UserId = currentUserService.GetUserId()
-            },
-            commandType: CommandType.Text
+            }
         );
     }
 
@@ -47,7 +46,7 @@ public class DietsRepository(DapperContext context, ICurrentUserService currentU
 
         IEnumerable<DietDetails> dietDetails =
             await connection.QueryAsync<DietDetails, DietMeal, Meal, DietDetails>(
-                "ufn_GetDiet",
+                "SELECT * FROM ufn_GetDiet(@Id, @UserId)",
                 (dietDetails, dietMeal, meal) =>
                 {
                     if (!dietDetailsDict.TryGetValue(dietDetails.Id, out var currentDiet))
@@ -62,8 +61,7 @@ public class DietsRepository(DapperContext context, ICurrentUserService currentU
                     return currentDiet;
                 },
                 new { Id = id, UserId = currentUserService.GetUserId() },
-                splitOn: "DietMealId, MealId",
-                commandType: CommandType.Text
+                splitOn: "DietMealId, MealId"
             );
 
         return dietDetails.FirstOrDefault();

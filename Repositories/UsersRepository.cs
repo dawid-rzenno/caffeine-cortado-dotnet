@@ -8,6 +8,14 @@ namespace cortado.Repositories;
 
 public interface IUsersRepository : ICrudRepository<User, User>
 {
+    public Task<IEnumerable<User>> GetAllAsync(
+        string sort,
+        string sortBy,
+        int size,
+        int page,
+        string term
+    );
+
     public Task<User?> GetByUsernameAsync(string username);
     public Task<User> UpdatePasswordAsync(User user);
 }
@@ -26,28 +34,33 @@ public class UsersRepository(
     )
     {
         using var connection = context.CreateConnection();
-        return await connection.QueryAsync<User>("ufn_GetUsers", new
-        {
-            Size = size,
-            Page = page,
-            Sort = sort,
-            SortBy = sortBy,
-            Term = term
-        }, commandType: CommandType.Text);
+        return await connection.QueryAsync<User>(
+            "SELECT * FROM ufn_GetUsers(@Term, @Page, @Size, @SortBy, @Sort)",
+            new
+            {
+                Size = size,
+                Page = page,
+                Sort = sort,
+                SortBy = sortBy,
+                Term = term
+            }
+        );
     }
-    
+
     public async Task<User?> GetByUsernameAsync(string username)
     {
         using var connection = context.CreateConnection();
-        return await connection.QueryFirstOrDefaultAsync<User>("ufn_GetUser", new { Username = username },
-            commandType: CommandType.Text);
+        return await connection.QueryFirstOrDefaultAsync<User>(
+            "SELECT * FROM ufn_GetUserByUsername(@Username)",
+            new { Username = username });
     }
 
     public async Task<User?> GetByIdAsync(int id)
     {
         using var connection = context.CreateConnection();
-        return await connection.QueryFirstOrDefaultAsync<User>("ufn_GetUser", new { Id = id },
-            commandType: CommandType.Text);
+        return await connection.QueryFirstOrDefaultAsync<User>(
+            "SELECT * FROM ufn_GetUserById(@Id)",
+            new { Id = id });
     }
 
     public async Task<User> CreateAsync(User user)

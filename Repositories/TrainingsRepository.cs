@@ -24,7 +24,7 @@ public class TrainingsRepository(DapperContext context, ICurrentUserService curr
     {
         using var connection = context.CreateConnection();
         return await connection.QueryAsync<Training>(
-            "ufn_GetTrainings",
+            "SELECT * FROM ufn_GetTrainings(@UserId, @GlobalSearch, @Term, @Page, @Size, @SortBy, @Sort)",
             new
             {
                 Size = size,
@@ -34,8 +34,7 @@ public class TrainingsRepository(DapperContext context, ICurrentUserService curr
                 Term = term,
                 GlobalSearch = globalSearch,
                 UserId = currentUserService.GetUserId()
-            },
-            commandType: CommandType.Text
+            }
         );
     }
 
@@ -47,7 +46,7 @@ public class TrainingsRepository(DapperContext context, ICurrentUserService curr
 
         IEnumerable<TrainingDetails> dietDetails =
             await connection.QueryAsync<TrainingDetails, TrainingExercise, Exercise, TrainingDetails>(
-                "ufn_GetTraining",
+                "SELECT * FROM ufn_GetTraining(@Id, @UserId)",
                 (trainingDetails, _, exercise) =>
                 {
                     if (!trainingDetailsDict.TryGetValue(trainingDetails.Id, out var currentTrainingDetails))
@@ -62,8 +61,7 @@ public class TrainingsRepository(DapperContext context, ICurrentUserService curr
                     return currentTrainingDetails;
                 },
                 new { Id = id, UserId = currentUserService.GetUserId() },
-                splitOn: "TrainingExerciseId, ExerciseId",
-                commandType: CommandType.Text
+                splitOn: "TrainingExerciseId, ExerciseId"
             );
 
         return dietDetails.FirstOrDefault();

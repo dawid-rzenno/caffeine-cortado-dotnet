@@ -21,20 +21,26 @@ public class UserRolesRepository(DapperContext context) : IUserRolesRepository
     )
     {
         using var connection = context.CreateConnection();
-        return await connection.QueryAsync<UserRole>("ufn_GetUserRoles", new
-        {
-            Size = size,
-            Page = page,
-            Sort = sort,
-            SortBy = sortBy,
-            Term = term,
-        },  commandType: CommandType.Text);
+        return await connection.QueryAsync<UserRole>(
+            "SELECT * FROM ufn_GetUserRoles(@Term, @Page, @Size, @SortBy, @Sort)",
+            new
+            {
+                Size = size,
+                Page = page,
+                Sort = sort,
+                SortBy = sortBy,
+                Term = term,
+            }
+        );
     }
 
     public async Task<UserRole?> GetByIdAsync(int id)
     {
         using var connection = context.CreateConnection();
-        return await connection.QueryFirstOrDefaultAsync<UserRole>("ufn_GetUserRole", new { Id = id }, commandType: CommandType.Text);
+        return await connection.QueryFirstOrDefaultAsync<UserRole>(
+            "SELECT * FROM ufn_GetUserRole(@Id)",
+            new { Id = id }
+        );
     }
 
     public async Task<UserRole> CreateAsync(UserRole userRole)
